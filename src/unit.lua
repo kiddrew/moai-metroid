@@ -20,7 +20,7 @@ function setupObjGfx(unit, data, name)
   if gfxData.rect then
     deck:setRect(gfxData.rect[1],gfxData.rect[2],gfxData.rect[3],gfxData.rect[4])
   else
-    deck:setRect(0,0,32,32)
+    deck:setRect(-16,-1,16,31)
   end
 
   unit.deckcache[name] = deck

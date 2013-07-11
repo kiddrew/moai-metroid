@@ -1,8 +1,6 @@
 module ( ..., package.seeall )
 
-local soundFiles = {
-  jump = 'jump.wav'
-}
+local soundFiles = require('data/soundFiles')
 
 local sounds = {}
 local volume = 1
@@ -17,12 +15,22 @@ for name, file in pairs ( soundFiles ) do
 	local sound = {
 		untz = untz,
 	}
-	sounds[name] = {}
+--	sounds[name] = {}
+  sounds[name] = {
+    untz = untz,
+  }
 end
 
 return {
-	sounds = sounds,
-	play = function ( name )
+	play = function ( name, looping )
+    looping = looping or false
+    local untz = sounds[name].untz
+    untz:setLooping(looping)
+    untz:play()
+    return {
+      untz = untz
+    }
+    --[[
 		local file = soundFiles[name]
 		local untz = MOAIUntzSound.new ()
 		untz:load ( '../resources/sounds/' .. file )
@@ -33,6 +41,7 @@ return {
 			untz = untz,
 		}
 		return sound
+    ]]--
 	end,
 	setVolume = function ( value )
 		volume = value

@@ -1,42 +1,6 @@
 module(..., package.seeall)
 
 return {
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,8,nil,8,nil,nil,nil,nil,nil,nil,8,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,
-nil,nil,nil,44,43,39,21,21,22,20,19,4,nil,6,8,10,26,41,41,40,46,nil,nil,nil,nil,nil,nil,nil,nil,nil,8,nil,
-nil,14,nil,1,nil,nil,nil,nil,nil,nil,nil,6,nil,3,31,35,37,36,38,32,30,31,33,33,7,34,29,27,33,32,4,nil,
-nil,16,nil,14,nil,nil,nil,nil,nil,nil,nil,6,nil,6,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,2,nil,
-nil,16,nil,11,nil,nil,8,10,26,41,40,4,nil,6,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,8,10,26,41,41,40,4,nil,
-nil,16,nil,11,nil,nil,nil,nil,nil,nil,nil,6,nil,6,nil,nil,nil,nil,8,nil,nil,nil,8,nil,nil,nil,nil,nil,nil,nil,6,nil,
-nil,16,nil,15,17,19,20,20,19,18,13,3,0,5,12,14,14,13,16,12,15,13,16,12,14,27,15,14,15,13,4,nil,
-nil,16,nil,nil,nil,nil,nil,nil,nil,nil,12,6,nil,6,nil,nil,nil,nil,17,nil,nil,nil,6,nil,nil,nil,nil,nil,nil,nil,8,nil,
-nil,16,nil,nil,nil,nil,nil,nil,nil,nil,12,6,nil,6,nil,nil,nil,nil,17,10,26,40,4,nil,6,nil,nil,nil,nil,nil,6,nil,
-nil,16,nil,nil,nil,nil,nil,nil,nil,nil,12,6,nil,6,nil,nil,nil,nil,8,nil,nil,nil,8,nil,8,27,6,25,25,42,11,nil,
-nil,15,4,3,2,5,6,7,8,9,10,6,nil,3,18,20,21,20,7,22,21,19,11,nil,12,7,25,25,25,42,14,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,6,nil,8,nil,nil,nil,nil,nil,nil,nil,nil,1,nil,10,27,4,15,6,42,14,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,6,nil,6,nil,nil,nil,nil,nil,nil,nil,nil,2,nil,6,nil,nil,nil,nil,nil,9,nil,
-nil,8,23,9,20,19,24,18,20,25,19,4,nil,8,29,31,6,31,25,30,30,28,3,40,41,41,41,43,41,42,14,nil,
-nil,nil,nil,nil,nil,nil,6,nil,nil,nil,nil,8,nil,8,29,31,30,25,7,25,25,44,6,6,43,43,26,26,26,42,11,nil,
-nil,nil,nil,nil,nil,nil,6,nil,11,nil,nil,11,nil,6,7,4,15,16,11,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,9,nil,
-nil,nil,nil,nil,nil,nil,6,nil,7,23,24,12,nil,8,33,37,37,34,3,33,37,32,0,39,44,44,6,4,15,16,14,nil,
-nil,nil,nil,nil,nil,nil,3,28,7,23,24,12,nil,10,33,35,37,34,3,33,36,36,36,35,35,6,36,37,34,17,45,nil,
-nil,nil,nil,nil,nil,nil,8,1,7,23,24,12,nil,9,nil,nil,nil,6,6,nil,nil,nil,nil,nil,nil,7,38,37,34,11,45,nil,
-nil,11,nil,nil,nil,nil,nil,2,11,nil,nil,8,nil,10,18,20,19,3,18,21,19,13,18,20,6,20,24,21,25,7,9,nil,
-nil,9,23,28,16,25,24,3,19,16,24,12,nil,6,nil,nil,nil,9,4,15,16,11,nil,nil,8,18,22,22,22,19,14,nil,
-nil,10,23,28,28,28,24,3,19,25,18,11,nil,0,nil,nil,11,8,18,25,25,7,nil,nil,8,5,nil,nil,nil,nil,6,nil,
-nil,5,nil,nil,11,nil,nil,8,nil,nil,nil,nil,11,nil,nil,nil,nil,6,nil,nil,nil,nil,nil,5,6,1,nil,nil,nil,nil,11,nil,
-nil,5,nil,nil,7,23,24,4,19,20,20,22,12,nil,5,nil,nil,5,15,24,23,24,25,41,5,2,nil,nil,nil,nil,5,nil,
-nil,5,nil,nil,8,nil,nil,5,nil,11,16,24,13,nil,10,32,34,13,37,38,38,38,29,14,14,3,35,36,36,21,7,nil,
-nil,5,nil,nil,35,23,24,6,34,12,nil,11,14,nil,11,nil,nil,4,nil,nil,nil,nil,5,nil,nil,nil,nil,nil,nil,nil,8,nil,
-nil,35,34,26,19,16,20,28,22,6,33,12,14,nil,10,28,29,3,32,33,33,34,6,35,15,40,39,39,39,25,7,nil,
-nil,11,nil,30,31,32,32,32,15,21,33,36,14,nil,4,nil,nil,nil,nil,nil,nil,nil,4,nil,nil,nil,nil,nil,nil,nil,8,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,29,27,23,24,12,nil,4,17,16,18,19,20,20,21,3,28,30,30,31,31,31,29,7,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,11,nil,12,22,24,23,24,23,15,23,23,26,26,23,27,27,23,25,9,nil,
-nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil
-}
-
---[[
-return {
 'FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF',
 'FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','08','FF','08','FF','FF','FF','FF','FF','FF','08','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF',
 'FF','FF','FF','2C','2B','27','15','15','16','14','13','04','FF','06','08','0A','1A','29','29','28','2E','FF','FF','FF','FF','FF','FF','FF','FF','FF','08','FF',
@@ -70,5 +34,4 @@ return {
 'FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','0B','FF','0C','16','18','17','18','17','0F','17','17','1A','1A','17','1B','1B','17','19','09','FF',
 'FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF','FF'
 }
-]]--
 

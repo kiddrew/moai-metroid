@@ -154,9 +154,7 @@ function SamusView:setFace(facing)
   end
   if facing == 'right' then
     self.prop:setScl(1,1)
-    self.prop:setLoc(-16,-1)
   else
     self.prop:setScl(-1,1)
-    self.prop:setLoc(16,-1)
   end
 end

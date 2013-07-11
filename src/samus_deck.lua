@@ -46,37 +46,37 @@ spawn_curve:setKey(5, 6.00, 5, MOAIEaseType.FLAT)
 samusSpawn = MOAITileDeck2D.new()
 samusSpawn:setTexture('../resources/images/samus_spawn.png')
 samusSpawn:setSize(5,2)
-samusSpawn:setRect(0,0,32,32)
+samusSpawn:setRect(-16,0,16,32)
 
 -- Stand
 samusStand = MOAITileDeck2D.new()
 samusStand:setTexture('../resources/images/samus_stand.png')
 samusStand:setSize(1,4)
-samusStand:setRect(0,0,32,32)
+samusStand:setRect(-16,0,16,32)
 
 -- Jump
 samusJump = MOAITileDeck2D.new()
 samusJump:setTexture('../resources/images/samus_jump.png')
 samusJump:setSize(2,4)
-samusJump:setRect(0,0,32,32)
+samusJump:setRect(-16,0,16,32)
 
 -- Flip
 samusFlip = MOAITileDeck2D.new()
 samusFlip:setTexture('../resources/images/samus_flip.png')
 samusFlip:setSize(4,4)
-samusFlip:setRect(0,0,32,32)
+samusFlip:setRect(-16,0,16,32)
 
 -- Run
 samusRun = MOAITileDeck2D.new()
 samusRun:setTexture('../resources/images/samus_run.png')
 samusRun:setSize(4,4)
-samusRun:setRect(0,0,32,32)
+samusRun:setRect(-16,0,16,32)
 
 -- Duck into ball
 samusDuck = MOAITileDeck2D.new()
 samusDuck:setTexture('../resources/images/samus_duck_into_ball.png')
 samusDuck:setSize(2,1)
-samusDuck:setRect(0,0,32,32)
+samusDuck:setRect(-16,0,16,32)
 
 -- Come out of ball
 -- TODO
@@ -85,19 +85,19 @@ samusDuck:setRect(0,0,32,32)
 samusRoll = MOAITileDeck2D.new()
 samusRoll:setTexture('../resources/images/samus_roll.png')
 samusRoll:setSize(4,4)
-samusRoll:setRect(0,0,32,32)
+samusRoll:setRect(-16,0,16,32)
 
 -- Aim up (top only)
 samusAimUp = MOAITileDeck2D.new()
 samusAimUp:setTexture('../resources/images/samus_aimup_top.png')
 samusAimUp:setSize(1,4)
-samusAimUp:setRect(0,0,32,32)
+samusAimUp:setRect(-16,0,16,32)
 
 -- Fire (top only)
 samusFire = MOAITileDeck2D.new()
 samusFire:setTexture('../resources/images/samus_fire_top.png')
 samusFire:setSize(1,4)
-samusFire:setRect(0,0,32,16)
+samusFire:setRect(-16,0,16,16)
 
 ---------------------------
 -- Build prop

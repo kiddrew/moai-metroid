@@ -12,10 +12,11 @@ function Samus:new ()
   local this = setmetatable({
     id = 'samus',
     health = 99,
-    speed = 90,
+    speed = 80,
+    ground_y = nil,
     map_pos = {
-      x = 2,
-      y = 14,
+      x = 6,
+      y = 15,
     },
     friction = {
       x = false,
@@ -41,6 +42,7 @@ function Samus:new ()
       missile_mode = false,
       aiming_up = false,
       on_ground = false,
+      ground_contacts = 0,
       facing = 'right',
       in_door = false,
       firing = false,
@@ -68,10 +70,33 @@ function Samus:new ()
   this.body:resetMassData()
   this.body.parent = this
 
-  this.fixture = this.body:addRect(-4,0,4,30)
-  this.fixture.id = 'samus'
-  this.fixture.parent = this
-  this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
+--  this.fixture = this.body:addRect(-4,0,4,30)
+  local body_poly = {
+    -4,1,
+    4,1,
+    4,30,
+    -4,30,
+  }
+  local foot_poly = {
+    -2.5,0,
+    2.5,0,
+    3.5,1,
+    -3.5,1,
+  }
+--  this.fixture = this.body:addPolygon(poly)
+  this.fixtures = {
+    ['foot'] = this.body:addPolygon(foot_poly),
+    ['body'] = this.body:addPolygon(body_poly),
+  }
+  this.fixtures['foot'].parent = this
+  this.fixtures['foot'].id = 'foot'
+  this.fixtures['foot']:setFriction(1)
+  this.fixtures['body'].parent = this
+  this.fixtures['body'].id = 'body'
+  this.fixtures['body']:setFriction(0)
+--  this.fixture.parent = this
+  this.fixtures['foot']:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
+  this.fixtures['body']:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
 
   this.view = View:new(this)
 
@@ -200,7 +225,7 @@ function Samus:jumpButton (down)
   if down then
     self:action('jump')
   else
-    self:fall()
+    self:inverseJump()
   end
 end
 
@@ -311,6 +336,9 @@ function Samus:jump ()
     return false
   end
 
+  self.status.on_ground = false
+  print "on ground: false"
+
   if self:isMoving() then
     self.status.action = 'jumpToFlip'
   else
@@ -319,9 +347,9 @@ function Samus:jump ()
   if self.gear.boots == true then
     self.body:applyLinearImpulse(0,300)
   else
-    self.body:applyLinearImpulse(0,220)
+    self.body:applyLinearImpulse(0,225)
   end
-  sounds.play('jump')
+--  sounds.play('jump')
 end
 
 function Samus:flip ()
@@ -330,6 +358,12 @@ function Samus:flip ()
 end
 
 function Samus:fall ()
+  self.status.action = 'jump'
+
+  self:updateView()
+end
+
+function Samus:inverseJump ()
   local dx, dy = self.body:getLinearVelocity()
   if dy > 0 then
     self.body:setLinearVelocity(dx, 0)
@@ -338,6 +372,7 @@ end
 
 function Samus:land ()
   self.status.on_ground = true
+  print "on ground: true"
   self.friction.x = true
   if self:isMoving() then
     if self.move.left then
@@ -464,22 +499,43 @@ end
 --------------------
 -- Game events
 --------------------
-function Samus:onCollision (obj)
-  if obj.id == 'platform' then
-    self:land()
-  elseif obj.id == 'lava' then
-    self:enterLava()
-  else -- Samus has hit an enemy
-    self:takeHit(obj)
+function Samus:onCollision (fix_a, fix_b)
+  if fix_a.id == 'body' then
+    if fix_b.id == 'ground' then
+    elseif fix_b.id == 'lava' then
+      self:enterLava()
+    else
+      self:takeHit(fix_b.parent)
+    end
+  elseif fix_a.id == 'foot' then
+    if fix_b.id == 'ground' then
+      local dx, dy = self.body:getLinearVelocity()
+      if dy <= 0 then
+        self:land()
+        self.status.ground_contacts = self.status.ground_contacts + 1
+        if self.status.ground_contacts > 2 then
+          self.status.ground_contacts = 2
+        end
+        print("gc: "..self.status.ground_contacts)
+      end
+    end
   end
 end
 
-function Samus:endCollision (obj)
-  if obj.id == 'platform' then
-    self.status.on_ground = false
-  elseif obj.id == 'lava' then
-    self:leaveLava()
-  else -- what else here?
+function Samus:endCollision (fix_a, fix_b)
+  if fix_a.id == 'body' then
+  elseif fix_a.id == 'foot' then
+    if fix_b.id == 'ground' then
+      self.status.ground_contacts = self.status.ground_contacts - 1
+      if self.status.ground_contacts < 0 then
+        self.status.ground_contacts = 0
+      end
+      print("gc: "..self.status.ground_contacts)
+      local dx, dy = self.body:getLinearVelocity()
+      if dy <= 0 and self.status.ground_contacts == 0 then
+        self:fall()
+      end
+    end
   end
 end
 

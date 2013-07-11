@@ -1,5 +1,7 @@
 module (..., package.seeall)
 
+local musicFiles = require('data/musicFiles')
+
 local volume = 0.25
 local bg = nil
 local playing = false
@@ -23,7 +25,7 @@ function _M.stop ()
 end
 
 function _M.play ( song )
-  bg:load ( '../resources/music/' .. song )
+  bg:load ( '../resources/music/' .. musicFiles[song] )
   bg:play ()
   playing = true
 end
