@@ -96,7 +96,7 @@ function setBackgroundGrid(ppu)
             local platform = {}
             platform.body = world:addBody(MOAIBox2DBody.STATIC, -144+c*16, 120-r*16)
             platform.fixture = platform.body:addPolygon(poly)
-            platform.fixture.id = 'ground'
+            platform.fixture.id = 'floor'
           end
         end
         if debug then
@@ -124,15 +124,9 @@ insertGameObject(Samus)
 
 _G.SamusView = require('samus_view').SamusView:new(Samus)
 
---[[
-start_room = map_mgr.getRoomIndex(Samus.map_pos.x, Samus.map_pos.y)
-print("start room: "..start_room)
-ppu = room_mgr.getRoomTileGrid(start_room)
-setBackgroundGrid(ppu)
-]]--
+map_mgr:populateRoomFloor(Samus.map_pos.x, Samus.map_pos.y)
 
-
-Samus:stand()
+Samus:spawn()
 
 gameLoop = MOAIThread.new()
 gameLoop:run(function()
@@ -158,17 +152,33 @@ gameLoop:run(function()
   
       obj.body:setLinearVelocity(dx, dy)
 
-      -- adjust camera position
+      -- update Samus
       if obj.id == 'samus' then
         local sx, sy = obj.body:getPosition()
+        local srx, sry = map_mgr.getCoordinatesInRoom(sx, sy)
         local cx, cy = camera:getLoc()
         local dx = 0
         local dy = 0
+
+        -- update Samus map pos
+        local rx, ry = map_mgr.getMapPosFromGlobalLoc(sx, sy)
+        Samus.map_pos.x = rx
+        Samus.map_pos.y = ry
+
+        -- update camera pos
         if camera.direction == 'x' then
           if sx > cx + 16 then
             dx = sx - cx - 16
           elseif sx < cx - 16 then
             dx = sx - cx + 16
+          end
+
+          if srx < 32 then
+            -- populate room left
+            map_mgr:populateRoom(rx-1, ry)
+          elseif srx > 224 then
+            -- populate room right
+            map_mgr:populateRoom(rx+1, ry)
           end
         elseif camera.direction == 'y' then
           if sy > cy + 16 then
@@ -176,9 +186,18 @@ gameLoop:run(function()
           elseif sy < cy - 16 then
             dy = sy - cy + 16
           end
+
+          if sry < 32 then
+            -- populate room up
+            map_mgr:populateRoom(rx, ry-1)
+          elseif sry > 208 then
+            -- populate room down
+            map_mgr:populateRoom(rx, ry+1)
+          end
         end
---        camera:moveLoc(dx, dy)
+        camera:moveLoc(dx, dy)
       end
+
     end
     coroutine.yield()
   end 

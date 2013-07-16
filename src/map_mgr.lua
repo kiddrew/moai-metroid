@@ -5,10 +5,20 @@ local area_data = require('data/areas')
 local room_mgr = require('room_mgr')
 local tile = require('tile_mgr')
 
-local map_mgr = {}
+local map_mgr = {
+  floors = {},
+}
 
-function map_mgr.getRoomCoordinates(rx,ry)
-  return -4096+(rx-1)*16*16+128, -3840+(32-ry)*15*16+120
+function map_mgr.getMapPosFromGlobalLoc(x,y)
+  return math.floor((x+4096)/256)+1, 32-math.floor((y+3840)/240)
+end
+
+function map_mgr.getCoordinatesInRoom(x,y)
+  return (x+4096)%256, (y+3840)%240
+end
+
+function map_mgr.getGlobalLocFromMapPos(rx,ry)
+  return -4096+(rx-1)*256, -3840+(32-ry)*240
 end
 
 function map_mgr.getRoomIndex(rx,ry)
@@ -21,6 +31,53 @@ end
 
 function map_mgr.getRoomArea(rx,ry)
   return area_data[ry][rx]
+end
+
+function map_mgr:populateRoom(rx, ry)
+  self:populateRoomFloor(rx, ry)
+end
+
+function map_mgr:populateRoomFloor(rx, ry)
+  if self.floors[tostring(rx).."-"..tostring(ry)] then
+    return
+  end
+
+  print("populate room floor: "..rx..","..ry)
+
+  local x, y = map_mgr.getGlobalLocFromMapPos(rx, ry)
+  local rid = map_mgr.getRoomIndex(rx, ry)
+  local area = map_mgr.getRoomArea(rx, ry)
+
+  local tiles = room_mgr.getRoomTileGrid(area, rid)
+
+  self.floors[tostring(rx).."-"..tostring(ry)] = {}
+
+  for tx = 1,16 do
+    for ty = 1,15 do
+      local tid = tiles[tx][ty]
+      if tid > 0 then
+        local poly = tile.getPoly(tid)
+        if poly ~= -1 then
+          local floor = {}
+          floor.body = world:addBody(MOAIBox2DBody.STATIC, x + (tx-1)*16, y + (15-ty)*16)
+          floor.fixture = floor.body:addPolygon(poly)
+          floor.fixture.id = 'floor'
+          table.insert(self.floors[tostring(rx).."-"..tostring(ry)], floor)
+        end
+      end
+    end
+  end
+end
+
+function map_mgr:clearRoomFloors()
+  for k,room in pairs(self.floors) do
+    for k2,floor in pairs(room) do
+      floor.body:destroy()
+      floor.fixture:destroy()
+      floor:destroy()
+    end
+  end
+  self.floors = {}
 end
 
 function map_mgr.init()
@@ -40,13 +97,8 @@ function map_mgr.init()
           for ty = 1,15 do
             local tid = tiles[tx][ty]
             if tid > 0 then
-              map:setTile((rx-1)*16+tx, 496-15*ry-ty, tid)
-              local poly = tile.getPoly(area, tid)
-              if poly ~= -1 then
---                local platform = {}
---                platform.body = world:addBody(MOAIBox2DBody.STATIC, -4096+(rx-1)*256+(tx-1)*16, 3840-(ry-1)*240-ty*16)
---                platform.fixture = platform.body:addPolygon(poly)
---                platform.fixture.id = 'ground'
+              if not debug then
+                map:setTile((rx-1)*16+tx, 496-15*ry-ty, tid)
               end
               if debug then
                 local textbox = MOAITextBox.new()

@@ -60,5 +60,11 @@ return {
     [0x40] = { -- bush
       poly = -1,
     },
+    [0x47] = { -- door frame
+      poly = -1,
+    },
+    [0x48] = { -- special item door frame
+      poly = -1,
+    },
 }
 

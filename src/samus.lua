@@ -7,13 +7,11 @@ Samus = {}
 Samus_mt = {__index = Samus}
 
 function Samus:new ()
-  print "creating samus"
-
   local this = setmetatable({
     id = 'samus',
     health = 99,
     speed = 80,
-    ground_y = nil,
+    floor_y = nil,
     map_pos = {
       x = 4,
       y = 15,
@@ -42,8 +40,8 @@ function Samus:new ()
       missile_mode = false,
       in_ball = nil,
       aiming_up = false,
-      on_ground = false,
-      ground_contacts = 0,
+      on_floor = false,
+      floor_contacts = 0,
       facing = 'right',
       in_door = false,
       firing = false,
@@ -65,9 +63,9 @@ function Samus:new ()
     screw = screw or false,
   }
 
-  local sx, sy = map_mgr.getRoomCoordinates(this.map_pos.x, this.map_pos.y)
+  local sx, sy = map_mgr.getGlobalLocFromMapPos(this.map_pos.x, this.map_pos.y)
 
-  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, sx, sy)
+  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, sx+128, sy+48)
   this.body:setFixedRotation(true)
   this.body:setMassData(80)
   this.body:resetMassData()
@@ -118,10 +116,9 @@ end
 --------------------
 function Samus:clearFixtures()
   if self.body.fixtures then
-    print "clearing samus fixtures"
+--    print "clearing samus fixtures"
     local fixtures = self.body.fixtures
     for i,fixture in pairs(fixtures) do
-      print(fixture)
       fixture:destroy()
     end
   end
@@ -132,7 +129,7 @@ function Samus:addFixture(name)
   if not self.body.fixtures then
     self.body.fixtures = {}
   end
-  print("add fixture: "..name)
+--  print("add fixture: "..name)
   fixture = self.body:addPolygon(self.fixture_data[name].poly)
   fixture.id = name
   fixture:setFriction(self.fixture_data[name].friction)
@@ -161,9 +158,9 @@ end
 --------------------
 function Samus:input (key, down)
   if down then
-    print(key..": down")
+--    print(key..": down")
   else
-    print(key..": up")
+--    print(key..": up")
   end
 
   if self.status.busy == true then
@@ -196,7 +193,7 @@ end
 
 function Samus:right (down)
   if debug then
-    print "Samus:right"
+--    print "Samus:right"
   end
   if down then
     self:setMove('right')
@@ -204,7 +201,7 @@ function Samus:right (down)
       self:face('right')
     end
 
-    if self.status.on_ground and self.status.action == 'stand' then
+    if self.status.on_floor and self.status.action == 'stand' then
       self:action('run')
     end
   else -- right button up
@@ -223,7 +220,7 @@ end
 
 function Samus:left (down)
   if debug then
-    print "Samus:left"
+--    print "Samus:left"
   end
   if down then
     self:setMove('left')
@@ -231,7 +228,7 @@ function Samus:left (down)
       self:face('left')
     end
 
-    if self.status.on_ground and self.status.action == 'stand' then
+    if self.status.on_floor and self.status.action == 'stand' then
       self:action('run')
     end
   else -- left button up
@@ -250,7 +247,7 @@ end
 
 function Samus:up (down)
   if down then
-    print("self.status.action == "..self.status.action)
+--    print("self.status.action == "..self.status.action)
     if self.status.in_ball then
       self:action('getup')
     end
@@ -316,7 +313,7 @@ function Samus:face(face)
 end
 
 function Samus:action(action)
-  print("action: "..action)
+--  print("action: "..action)
   if action == 'spawn' then
     self:spawn()
   elseif action == 'die' then
@@ -343,10 +340,11 @@ function Samus:action(action)
 end
 
 function Samus:spawn ()
-  self.setStandFixtures()
+  self:setStandFixtures()
   self.status.in_ball = false
-  self.status.busy = true
+--  self.status.busy = true
   self.status.action = 'spawn'
+  self:updateView()
 end
 
 function Samus:die ()
@@ -371,7 +369,7 @@ function Samus:duck ()
   if not self.gear.ball then
     return false
   end
-  if self.status.on_ground == false then
+  if self.status.on_floor == false then
     return false
   end
 
@@ -397,13 +395,13 @@ function Samus:roll ()
 end
 
 function Samus:jump ()
-  if self.status.in_ball or not self.status.on_ground then
+  if self.status.in_ball or not self.status.on_floor then
     return false
   end
 
-  self.status.on_ground = false
+  self.status.on_floor = false
   self.speed = 60
-  print "on ground: false"
+--  print "on floor: false"
 
   if self:isMoving() then
     self.status.action = 'jumpToFlip'
@@ -440,9 +438,9 @@ function Samus:inverseJump ()
 end
 
 function Samus:land ()
-  self.status.on_ground = true
+  self.status.on_floor = true
   self.speed = 80
-  print "on ground: true"
+--  print "on floor: true"
   self.friction.x = true
   if self:isMoving() then
     if self.move.left then
@@ -573,18 +571,18 @@ end
 --------------------
 function Samus:onCollision (fix_a, fix_b)
   if fix_a.id == 'foot' then
-    if fix_b.id == 'ground' then
+    if fix_b.id == 'floor' then
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 then
         self:land()
-        self.status.ground_contacts = self.status.ground_contacts + 1
-        if self.status.ground_contacts > 2 then
-          self.status.ground_contacts = 2
+        self.status.floor_contacts = self.status.floor_contacts + 1
+        if self.status.floor_contacts > 2 then
+          self.status.floor_contacts = 2
         end
       end
     end
   else
-    if fix_b.id == 'ground' then
+    if fix_b.id == 'floor' then
     elseif fix_b.id == 'lava' then
       self:enterLava()
     else
@@ -595,13 +593,13 @@ end
 
 function Samus:endCollision (fix_a, fix_b)
   if fix_a.id == 'foot' then
-    if fix_b.id == 'ground' then
-      self.status.ground_contacts = self.status.ground_contacts - 1
-      if self.status.ground_contacts < 0 then
-        self.status.ground_contacts = 0
+    if fix_b.id == 'floor' then
+      self.status.floor_contacts = self.status.floor_contacts - 1
+      if self.status.floor_contacts < 0 then
+        self.status.floor_contacts = 0
       end
       local dx, dy = self.body:getLinearVelocity()
-      if dy <= 0 and self.status.ground_contacts == 0 then
+      if dy <= 0 and self.status.floor_contacts == 0 then
         self:fall()
       end
     end
