@@ -10,7 +10,7 @@ function Samus:new ()
   local this = setmetatable({
     id = 'samus',
     health = 99,
-    speed = 80,
+    speed = 85,
     floor_y = nil,
     map_pos = {
       x = 4,

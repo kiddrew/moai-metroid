@@ -9,16 +9,16 @@ return {
     },
     [0x0A] = { -- left stalagtite
       poly = {
-        0.1,15.9,
-        15.9,15.9,
-        15.9,0.1
+        0,16,
+        16,16,
+        16,0
       },
     },
     [0x0B] = { -- right stalagtite
       poly = {
-        0.1,0.1,
-        0.1,15.9,
-        15.9,15.9
+        0,0,
+        0,16,
+        16,16
       },
     },
     [0x22] = { -- blank
@@ -65,6 +65,20 @@ return {
     },
     [0x48] = { -- special item door frame
       poly = -1,
+    },
+    [0x4A] = { -- left stalagtite
+      poly = {
+        0,16,
+        16,16,
+        16,0
+      },
+    },
+    [0x4B] = { -- right stalagtite
+      poly = {
+        0,0,
+        0,16,
+        16,16
+      },
     },
 }
 
