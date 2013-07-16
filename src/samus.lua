@@ -15,7 +15,7 @@ function Samus:new ()
     speed = 80,
     ground_y = nil,
     map_pos = {
-      x = 6,
+      x = 4,
       y = 15,
     },
     friction = {
@@ -40,6 +40,7 @@ function Samus:new ()
       busy = false,
       action = nil, -- spawn, stand, run, roll, jump, flip
       missile_mode = false,
+      in_ball = nil,
       aiming_up = false,
       on_ground = false,
       ground_contacts = 0,
@@ -64,43 +65,95 @@ function Samus:new ()
     screw = screw or false,
   }
 
-  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, 0, -88)
+  local sx, sy = map_mgr.getRoomCoordinates(this.map_pos.x, this.map_pos.y)
+
+  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, sx, sy)
   this.body:setFixedRotation(true)
   this.body:setMassData(80)
   this.body:resetMassData()
   this.body.parent = this
 
---  this.fixture = this.body:addRect(-4,0,4,30)
-  local body_poly = {
-    -4,1,
-    4,1,
-    4,30,
-    -4,30,
+  this.fixture_data = {
+    ['body'] = {
+      poly = {
+        -4,1,
+        4,1,
+        4,30,
+        -4,30,
+      },
+      friction = 0,
+      restitution = 0,
+    },
+    ['ball'] = {
+      poly = {
+        -3.5,0,
+        3.5,0,
+        4,0.5,
+        4,14,
+        -4,14,
+        -4,0.5,
+      },
+      friction = 1,
+      restitution = 0.1,
+    },
+    ['foot'] = {
+      poly = {
+        -2.5,0,
+        2.5,0,
+        3.5,1,
+        -3.5,1,
+      },
+      friction = 1,
+      restitution = 0,
+    }
   }
-  local foot_poly = {
-    -2.5,0,
-    2.5,0,
-    3.5,1,
-    -3.5,1,
-  }
---  this.fixture = this.body:addPolygon(poly)
-  this.fixtures = {
-    ['foot'] = this.body:addPolygon(foot_poly),
-    ['body'] = this.body:addPolygon(body_poly),
-  }
-  this.fixtures['foot'].parent = this
-  this.fixtures['foot'].id = 'foot'
-  this.fixtures['foot']:setFriction(1)
-  this.fixtures['body'].parent = this
-  this.fixtures['body'].id = 'body'
-  this.fixtures['body']:setFriction(0)
---  this.fixture.parent = this
-  this.fixtures['foot']:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
-  this.fixtures['body']:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
 
   this.view = View:new(this)
 
   return this
+end
+
+--------------------
+-- Fixtures
+--------------------
+function Samus:clearFixtures()
+  if self.body.fixtures then
+    print "clearing samus fixtures"
+    local fixtures = self.body.fixtures
+    for i,fixture in pairs(fixtures) do
+      print(fixture)
+      fixture:destroy()
+    end
+  end
+  self.body.fixtures = {}
+end
+
+function Samus:addFixture(name)
+  if not self.body.fixtures then
+    self.body.fixtures = {}
+  end
+  print("add fixture: "..name)
+  fixture = self.body:addPolygon(self.fixture_data[name].poly)
+  fixture.id = name
+  fixture:setFriction(self.fixture_data[name].friction)
+  fixture:setRestitution(self.fixture_data[name].restitution)
+  fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN + MOAIBox2DArbiter.END)
+
+  self.body.fixtures[name] = fixture
+end
+
+function Samus:setStandFixtures()
+  if self.status.in_ball == false then
+    return
+  end
+  self:clearFixtures()
+  self:addFixture('foot')
+  self:addFixture('body')
+end
+
+function Samus:setBallFixtures()
+  self:clearFixtures()
+  self:addFixture('ball')
 end
 
 --------------------
@@ -151,7 +204,7 @@ function Samus:right (down)
       self:face('right')
     end
 
-    if self.status.on_ground then
+    if self.status.on_ground and self.status.action == 'stand' then
       self:action('run')
     end
   else -- right button up
@@ -178,7 +231,7 @@ function Samus:left (down)
       self:face('left')
     end
 
-    if self.status.on_ground then
+    if self.status.on_ground and self.status.action == 'stand' then
       self:action('run')
     end
   else -- left button up
@@ -198,8 +251,8 @@ end
 function Samus:up (down)
   if down then
     print("self.status.action == "..self.status.action)
-    if self.status.action == 'roll' then
-      self:action('stand')
+    if self.status.in_ball then
+      self:action('getup')
     end
     if self.status.action ~= 'flip' then
       self:aim('up')
@@ -290,6 +343,8 @@ function Samus:action(action)
 end
 
 function Samus:spawn ()
+  self.setStandFixtures()
+  self.status.in_ball = false
   self.status.busy = true
   self.status.action = 'spawn'
 end
@@ -300,10 +355,15 @@ function Samus:die ()
 end
 
 function Samus:stand ()
+  if not self.body.fixtures then
+    self:setStandFixtures()
+  end
+  self.status.in_ball = false
   self.status.action = 'stand'
 end
 
 function Samus:run ()
+  self.status.in_ball = false
   self.status.action = 'run'
 end
 
@@ -315,11 +375,15 @@ function Samus:duck ()
     return false
   end
 
+  self.status.in_ball = true
+  self:setBallFixtures()
   self.status.action = 'duck'
 end
 
 function Samus:getup ()
   self.status.action = 'getup'
+  self:setStandFixtures()
+  self.status.in_ball = false
   if self.move.right or self.move.left then
     self.status.action = 'run'
   else
@@ -329,14 +393,16 @@ end
 
 function Samus:roll ()
   self.status.action = 'roll'
+  self.speed = 80
 end
 
 function Samus:jump ()
-  if self.status.action == 'roll' or self.status.on_ground == false then
+  if self.status.in_ball or not self.status.on_ground then
     return false
   end
 
   self.status.on_ground = false
+  self.speed = 60
   print "on ground: false"
 
   if self:isMoving() then
@@ -358,7 +424,10 @@ function Samus:flip ()
 end
 
 function Samus:fall ()
-  self.status.action = 'jump'
+  self.speed = 60
+  if not self.status.in_ball then
+    self.status.action = 'jump'
+  end
 
   self:updateView()
 end
@@ -372,6 +441,7 @@ end
 
 function Samus:land ()
   self.status.on_ground = true
+  self.speed = 80
   print "on ground: true"
   self.friction.x = true
   if self:isMoving() then
@@ -380,8 +450,10 @@ function Samus:land ()
     else
       self:face('right')
     end
-    self:run()
-  else
+    if not self.status.in_ball then
+      self:run()
+    end
+  elseif not self.status.in_ball then
     self:stand()
   end
 
@@ -403,7 +475,7 @@ function Samus:fire ()
     self:face('right')
   end
 
-  if self.status.action == 'roll' then
+  if self.status.in_ball then
     self:dropBomb()
   elseif self.status.missile_mode then
     self:fireMissile()
@@ -500,14 +572,7 @@ end
 -- Game events
 --------------------
 function Samus:onCollision (fix_a, fix_b)
-  if fix_a.id == 'body' then
-    if fix_b.id == 'ground' then
-    elseif fix_b.id == 'lava' then
-      self:enterLava()
-    else
-      self:takeHit(fix_b.parent)
-    end
-  elseif fix_a.id == 'foot' then
+  if fix_a.id == 'foot' then
     if fix_b.id == 'ground' then
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 then
@@ -516,21 +581,25 @@ function Samus:onCollision (fix_a, fix_b)
         if self.status.ground_contacts > 2 then
           self.status.ground_contacts = 2
         end
-        print("gc: "..self.status.ground_contacts)
       end
+    end
+  else
+    if fix_b.id == 'ground' then
+    elseif fix_b.id == 'lava' then
+      self:enterLava()
+    else
+      self:takeHit(fix_b.parent)
     end
   end
 end
 
 function Samus:endCollision (fix_a, fix_b)
-  if fix_a.id == 'body' then
-  elseif fix_a.id == 'foot' then
+  if fix_a.id == 'foot' then
     if fix_b.id == 'ground' then
       self.status.ground_contacts = self.status.ground_contacts - 1
       if self.status.ground_contacts < 0 then
         self.status.ground_contacts = 0
       end
-      print("gc: "..self.status.ground_contacts)
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 and self.status.ground_contacts == 0 then
         self:fall()

@@ -1,6 +1,6 @@
 module (..., package.seeall)
 
-local data = {
+return {
   fire = {
     texture = '../resources/images/samus_fire_top.png',
     size = {1,4},
@@ -13,8 +13,4 @@ local data = {
     size = {1,4},
   },
 }
-
-function getData()
-  return data
-end
 

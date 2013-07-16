@@ -1,5 +1,5 @@
-local data = require('data/samus').getData()
-local data_child = require('data/samus_child').getData()
+local data = require('data/samus')
+local data_child = require('data/samus_child')
 local debug = false
 require 'unit'
 
@@ -18,7 +18,7 @@ function SamusChild:new(parent)
   this.prop = MOAIProp2D.new()
   this.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, parent.prop, MOAIProp2D.TRANSFORM_TRAIT)
   this.prop:setLoc(0,16)
-  layer:insertProp(this.prop)
+  p_layer:insertProp(this.prop)
 
   return this
 end
@@ -64,7 +64,7 @@ function SamusView:new(samus)
   this.prop:setDeck(deck)
   this.prop:setParent(this.parent.body)
 
-  layer:insertProp(this.prop)
+  p_layer:insertProp(this.prop)
 
   this.child = SamusChild:new(this)
 
