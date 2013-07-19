@@ -73,56 +73,20 @@ world:start()
 p_layer:setBox2DWorld(world)
 
 _G.map_mgr = require('map_mgr')
-_G.room = require('room_mgr')
+_G.room_mgr = require('room_mgr')
 map_mgr.init()
 
 _G.collision = require('collision')
 _G.gameObjects = {}
 
-camera:setRoomLoc(4, 15)
---camera:setLoc(1000,8)
-
-_G.ppu = initializeGrid(15, 16)
-
---[[
-function setBackgroundGrid(ppu)
-  for r, row in pairs(ppu) do
-    local tmp = {}
-    for c, tid in pairs(row) do
-        local poly = tile.getPoly(tid)
-        if tid > 0 then
-          tmp[c] = tid
-          if poly ~= -1 then
-            local platform = {}
-            platform.body = world:addBody(MOAIBox2DBody.STATIC, -144+c*16, 120-r*16)
-            platform.fixture = platform.body:addPolygon(poly)
-            platform.fixture.id = 'floor'
-          end
-        end
-        if debug then
-          local textbox = MOAITextBox.new()
-          textbox:setString(string.format('%X', tid))
-          textbox:setFont(font)
-          textbox:setRect(0,0,16,16)
-          textbox:setLoc(-144+c*16, 120-r*16)
-          textbox:setYFlip(true)
-          m_layer:insertProp(textbox)
-        end
-    end
-    background:setRow(16-r,tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11],tmp[12],tmp[13],tmp[14],tmp[15],tmp[16])
-  end
-end
-]]--
-
 function insertGameObject(obj)
   table.insert(gameObjects, obj)
 end
 
-_G.Samus = require('samus').Samus:new()
+_G.Samus = require('samus').Samus.init()
 input.init(Samus)
 insertGameObject(Samus)
-
-_G.SamusView = require('samus_view').SamusView:new(Samus)
+camera:setRoomLoc(Samus.map_pos.x, Samus.map_pos.y)
 
 map_mgr:populateRoomFloor(Samus.map_pos.x, Samus.map_pos.y)
 
@@ -134,70 +98,45 @@ gameLoop:run(function()
     for k, obj in pairs(gameObjects) do
       local dx, dy = obj.body:getLinearVelocity()
 
-      if obj.move.right and not obj.move.left then
-        dx = obj.speed
-      elseif obj.move.left and not obj.move.right then
-        dx = obj.speed * -1
-      elseif obj.friction.x then
-        dx = 0
-      end
-
-      if obj.move.up and not obj.move.down then
-        dy = obj.speed
-      elseif obj.move.down and not obj.move.up then
-        dy = obj.speed * -1
-      elseif obj.friction.y then
-        dy = 0
-      end
+      -- update body velocity
+      if not obj.status.busy then
+        -- normal body movement
+        if obj.move.right and not obj.move.left then
+          dx = obj.speed
+        elseif obj.move.left and not obj.move.right then
+          dx = obj.speed * -1
+        elseif obj.friction.x then
+          dx = 0
+        end
   
-      obj.body:setLinearVelocity(dx, dy)
-
-      -- update Samus
-      if obj.id == 'samus' then
-        local sx, sy = obj.body:getPosition()
-        local srx, sry = map_mgr.getCoordinatesInRoom(sx, sy)
-        local cx, cy = camera:getLoc()
-        local dx = 0
-        local dy = 0
-
-        -- update Samus map pos
-        local rx, ry = map_mgr.getMapPosFromGlobalLoc(sx, sy)
-        Samus.map_pos.x = rx
-        Samus.map_pos.y = ry
-
-        -- update camera pos
-        if camera.direction == 'x' then
-          if sx > cx + 16 then
-            dx = sx - cx - 16
-          elseif sx < cx - 16 then
-            dx = sx - cx + 16
-          end
-
-          if srx < 32 then
-            -- populate room left
-            map_mgr:populateRoom(rx-1, ry)
-          elseif srx > 224 then
-            -- populate room right
-            map_mgr:populateRoom(rx+1, ry)
-          end
-        elseif camera.direction == 'y' then
-          if sy > cy + 16 then
-            dy = sy - cy - 16
-          elseif sy < cy - 16 then
-            dy = sy - cy + 16
-          end
-
-          if sry < 32 then
-            -- populate room up
-            map_mgr:populateRoom(rx, ry-1)
-          elseif sry > 208 then
-            -- populate room down
-            map_mgr:populateRoom(rx, ry+1)
+        if obj.move.up and not obj.move.down then
+          dy = obj.speed
+        elseif obj.move.down and not obj.move.up then
+          dy = obj.speed * -1
+        elseif obj.friction.y then
+          dy = 0
+        end
+        --[[
+      else
+        if obj.id == 'samus' then
+          print "samus busy"
+          if obj.status.in_door then
+            print "in door"
+            dy = 4
           end
         end
-        camera:moveLoc(dx, dy)
+        ]]--
+        obj.body:setLinearVelocity(dx, dy)
       end
 
+      if obj.id == 'samus' then
+        -- update Samus map pos
+        obj:updateMapPos()
+
+        camera:updateLocForSamus(obj)
+
+        map_mgr.updateRoomData(camera, obj)
+      end
     end
     coroutine.yield()
   end 

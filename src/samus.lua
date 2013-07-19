@@ -13,8 +13,8 @@ function Samus:new ()
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 4,
-      y = 15,
+      x = 18,
+      y = 12,
     },
     friction = {
       x = false,
@@ -42,6 +42,8 @@ function Samus:new ()
       aiming_up = false,
       on_floor = false,
       floor_contacts = 0,
+      door_contacts = 0,
+      lava_contacts = 0,
       facing = 'right',
       in_door = false,
       firing = false,
@@ -63,21 +65,15 @@ function Samus:new ()
     screw = screw or false,
   }
 
-  local sx, sy = map_mgr.getGlobalLocFromMapPos(this.map_pos.x, this.map_pos.y)
-
-  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, sx+128, sy+48)
-  this.body:setFixedRotation(true)
-  this.body:setMassData(80)
-  this.body:resetMassData()
-  this.body.parent = this
-
   this.fixture_data = {
     ['body'] = {
       poly = {
-        -4,1,
-        4,1,
+        -3.5,1,
+        3.5,1,
+        4,1.5,
         4,30,
         -4,30,
+        -4,1.5
       },
       friction = 0,
       restitution = 0,
@@ -109,6 +105,35 @@ function Samus:new ()
   this.view = View:new(this)
 
   return this
+end
+
+function Samus.init()
+  local Samus = Samus:new()
+  local sx, sy = map_mgr.getGlobalLocFromMapPos(Samus.map_pos.x, Samus.map_pos.y)
+  Samus:setBody(sx+128, sy+48)
+
+  return Samus
+end
+
+function Samus:updateMapPos()
+  local sx, sy = self.body:getPosition()
+  local rx, ry = map_mgr.getMapPosFromGlobalLoc(sx, sy)
+  self.map_pos.x = rx
+  self.map_pos.y = ry
+end
+
+function Samus:setBody(x,y)
+  if self.body then
+    self.body:destroy()
+    self.body = nil
+  end
+  self.body = world:addBody(MOAIBox2DBody.DYNAMIC, x, y)
+  self.body:setFixedRotation(true)
+  self.body:setMassData(80)
+  self.body:resetMassData()
+  self.body.parent = self
+
+  self.view.prop:setParent(self.body)
 end
 
 --------------------
@@ -163,10 +188,6 @@ function Samus:input (key, down)
 --    print(key..": up")
   end
 
-  if self.status.busy == true then
-    return false
-  end
-
   if key == 'right' then 
     self.button.right = down
     self:right (down)
@@ -197,6 +218,7 @@ function Samus:right (down)
   end
   if down then
     self:setMove('right')
+
     if self.status.action ~= 'flip' then
       self:face('right')
     end
@@ -206,6 +228,7 @@ function Samus:right (down)
     end
   else -- right button up
     self:cancelMove('right')
+
     if self.button.left then
       self:left(true)
     elseif self.status.action == 'run' then
@@ -224,6 +247,7 @@ function Samus:left (down)
   end
   if down then
     self:setMove('left')
+
     if self.status.action ~= 'flip' then
       self:face('left')
     end
@@ -233,6 +257,7 @@ function Samus:left (down)
     end
   else -- left button up
     self:cancelMove('left')
+
     if self.button.right then
       self:right(true)
     elseif self.status.action == 'run' then
@@ -248,11 +273,12 @@ end
 function Samus:up (down)
   if down then
 --    print("self.status.action == "..self.status.action)
-    if self.status.in_ball then
-      self:action('getup')
-    end
     if self.status.action ~= 'flip' then
       self:aim('up')
+    end
+
+    if self.status.in_ball then
+      self:action('getup')
     end
   else
     self:aim()
@@ -307,6 +333,8 @@ function Samus:cancelMove(dir)
 end
 
 function Samus:face(face)
+  if self.status.busy then return end
+
   self.status.facing = face
 
   self:updateView()
@@ -314,6 +342,8 @@ end
 
 function Samus:action(action)
 --  print("action: "..action)
+  if self.status.busy then return end
+
   if action == 'spawn' then
     self:spawn()
   elseif action == 'die' then
@@ -526,11 +556,61 @@ function Samus:toggleMissiles ()
   self:updateView()
 end
 
-function Samus:door ()
-  self.in_door = true
-  if self.anim then
-    self.anim:stop()
+function Samus:enterDoor(dir)
+  self.status.in_door = true
+  self.status.busy = true
+
+  if self.view.anim then
+    self.view.anim:pause()
   end
+
+  local x,y = self.body:getPosition()
+  local rx, ry = map_mgr.getMapPosFromGlobalLoc(x,y)
+
+  local factor
+  if dir == 'right' then
+    factor = 1
+    map_mgr:populateRoom(rx+1, ry)
+  elseif dir == 'left' then
+    factor = -1
+    map_mgr:populateRoom(rx-1, ry)
+  end
+    
+  local thread = MOAICoroutine.new()
+  thread:run( function()
+    -- pull Samus into door
+    repeat
+      self.body:setLinearVelocity(60*factor,4)
+      local dx, dy = self.body:getPosition()
+      coroutine:yield()
+    until math.abs(dx - x) >= 20
+  
+    self.body:setLinearVelocity(0,4)
+    -- move camera
+    if dir == 'right' then
+      camera:moveRightRoom()
+    elseif dir == 'left' then
+      camera:moveLeftRoom()
+    end
+  
+    -- push Samus out of door
+    repeat
+      self.body:setLinearVelocity(60*factor,4)
+      local dx, dy = self.body:getPosition()
+      coroutine:yield()
+    until math.abs(dx - x) >= 41
+
+    -- swap camera direction
+    camera:swapDirection()
+
+    self.status.in_door = false
+    self.status.busy = false
+  end )
+end
+
+function Samus:exitDoor()
+  self.status.in_door = false
+  self.status.busy = false
 end
 
 function Samus:takeHit (obj)
@@ -583,6 +663,11 @@ function Samus:onCollision (fix_a, fix_b)
     end
   else
     if fix_b.id == 'floor' then
+    elseif fix_b.id == 'door' then
+      self.status.door_contacts = self.status.door_contacts + 1
+      if not self.status.in_door then
+        self:enterDoor(fix_b.dir)
+      end
     elseif fix_b.id == 'lava' then
       self:enterLava()
     else
@@ -601,6 +686,11 @@ function Samus:endCollision (fix_a, fix_b)
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 and self.status.floor_contacts == 0 then
         self:fall()
+      end
+    elseif fix_b.id == 'door' then
+      self.status.door_contacts = self.status.door_contacts - 1
+      if self.status.door_contacts == 0 then
+        self:exitDoor()
       end
     end
   end

@@ -31,5 +31,27 @@ return {
     end
   
     return grid
+  end,
+  getRoomDoors = function(area, rid)
+    if area == 0 then
+      return nil
+    end
+
+    local d = room_data[area][tonumber(rid,16)+1]
+
+    if d[3] and d[3].doors then
+      return d[3].doors
+    else
+      return nil
+    end
+  end,
+  getRoomEnemies = function(area, rid)
+    if area == 0 then
+      return nil
+    end
+
+    local d = room_data[area][tonumber(rid,16)+1]
+
+    return d[3].enemies or nil
   end
 }

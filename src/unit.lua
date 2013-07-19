@@ -26,7 +26,6 @@ function setupObjGfx(unit, data, name)
   unit.deckcache[name] = deck
 
   if gfxData.frames then
-    print("setting up curve for: "..name)
     local frames = gfxData.frames
     local curve = MOAIAnimCurve:new()
     curve:reserveKeys(#frames)
@@ -39,7 +38,6 @@ function setupObjGfx(unit, data, name)
     end
 
     function remove()
-      print "remove prop"
       unit:remove()
     end
 
@@ -47,7 +45,6 @@ function setupObjGfx(unit, data, name)
       unit:cancel(name)
     end
   
-    print("setting up anim for: "..name)
     local anim = MOAIAnim:new()
     anim:reserveLinks(1)
     anim:setLink(1, curve, unit.prop, MOAIProp2D.ATTR_INDEX)
@@ -58,12 +55,9 @@ function setupObjGfx(unit, data, name)
       anim:setListener(MOAIAction.EVENT_STOP, nextState)
     end
     if gfxData.on_complete then
-      print "on_complete"
       if gfxData.on_complete == 'remove' then
-        print "setting up remove event"
         anim:setListener(MOAIAction.EVENT_STOP, remove)
       elseif gfxData.on_complete == 'cancel' then
-        print "setting up cancel event"
         anim:setListener(MOAIAction.EVENT_STOP, cancel)
       end
     end
