@@ -1,6 +1,7 @@
 module(..., package.seeall)
 
 function handler(phase, fix_a, fix_b, arbiter)
+--  print("collision: "..fix_a.id.." vs "..fix_b.id)
   if phase == MOAIBox2DArbiter.BEGIN then
     -- begin collision
     fix_a:getBody().parent:onCollision(fix_a, fix_b)

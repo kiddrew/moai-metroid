@@ -35,7 +35,9 @@ function Item:new(data)
   prop:setParent(this.body)
   this.prop = prop
   prop:setLoc(0,0)
-  p_layer:insertProp(prop)
+  if not debug then
+    p_layer:insertProp(prop)
+  end
 
   local frames = data.frames
   local curve = MOAIAnimCurve:new()
@@ -56,6 +58,7 @@ function Item:new(data)
 end
 
 function Item:destroy()
+  self.prop:setDeck(nil)
   p_layer:removeProp(self.prop)
   self.body:destroy()
   self.body = nil

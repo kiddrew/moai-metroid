@@ -1,6 +1,5 @@
 local data = require('data/samus')
 local data_child = require('data/samus_child')
-local debug = false
 require 'unit'
 
 module ( ..., package.seeall)
@@ -18,7 +17,9 @@ function SamusChild:new(parent)
   this.prop = MOAIProp2D.new()
   this.prop:setAttrLink(MOAIProp2D.INHERIT_TRANSFORM, parent.prop, MOAIProp2D.TRANSFORM_TRAIT)
   this.prop:setLoc(0,16)
-  p_layer:insertProp(this.prop)
+  if not debug then
+    p_layer:insertProp(this.prop)
+  end
 
   return this
 end
@@ -61,10 +62,12 @@ function SamusView:new(samus)
 
   -- Main prop
   this.prop = MOAIProp2D.new()
-  this.prop:setDeck(deck)
+--  this.prop:setDeck(deck)
   this.prop:setParent(this.parent.body)
 
-  p_layer:insertProp(this.prop)
+  if not debug then
+    p_layer:insertProp(this.prop)
+  end
 
   this.child = SamusChild:new(this)
 
@@ -149,9 +152,6 @@ function SamusView:update(action, facing, aiming_up, firing)
 end
 
 function SamusView:setFace(facing)
-  if debug then
-    print("facing = "..facing)
-  end
   if facing == 'right' then
     self.prop:setScl(1,1)
   else

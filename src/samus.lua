@@ -1,5 +1,4 @@
 local View = require('samus_view').SamusView
-local debug = true
 
 module ( ..., package.seeall)
 
@@ -10,11 +9,12 @@ function Samus:new ()
   local this = setmetatable({
     id = 'samus',
     health = 99,
+    missiles = 0,
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 18,
-      y = 12,
+      x = 9,
+      y = 6,
     },
     friction = {
       x = false,
@@ -42,6 +42,7 @@ function Samus:new ()
       aiming_up = false,
       on_floor = false,
       floor_contacts = 0,
+      ball_sensor_contacts = 0,
       door_contacts = 0,
       lava_contacts = 0,
       facing = 'right',
@@ -52,9 +53,8 @@ function Samus:new ()
   }, Samus_mt)
 
   this.gear = {
-    energyTanks = energyTanks or 0,
-    missiles = max_missiles or 0,
-    max_missiles = max_missiles or 0,
+    energy_tanks = energy_tanks or {},
+    missiles = missiles or {},
     ball = ball or true,
     bomb = bomb or false,
     longbeam = longbeam or false,
@@ -88,7 +88,7 @@ function Samus:new ()
         -4,0.5,
       },
       friction = 1,
-      restitution = 0.1,
+      restitution = 0.6,
     },
     ['foot'] = {
       poly = {
@@ -98,6 +98,16 @@ function Samus:new ()
         -3.5,1,
       },
       friction = 1,
+      restitution = 0,
+    },
+    ['ball_sensor'] = {
+      poly = {
+        -4,16,
+        4,16,
+        4,30,
+        -4,30,
+      },
+      friction = 0,
       restitution = 0,
     }
   }
@@ -109,15 +119,21 @@ end
 
 function Samus.init()
   local Samus = Samus:new()
-  local sx, sy = map_mgr.getGlobalLocFromMapPos(Samus.map_pos.x, Samus.map_pos.y)
+  local sx, sy = map_mgr.getGlobalLocForMapPos(Samus.map_pos.x, Samus.map_pos.y)
   Samus:setBody(sx+128, sy+48)
 
   return Samus
 end
 
+function Samus:updateWorld()
+  self:updateMapPos()
+  camera:updateLocForSamus(self)
+  fixture_map:updateRoomsForSamus(self)
+end
+
 function Samus:updateMapPos()
   local sx, sy = self.body:getPosition()
-  local rx, ry = map_mgr.getMapPosFromGlobalLoc(sx, sy)
+  local rx, ry = map_mgr.getMapPosForGlobalLoc(sx, sy)
   self.map_pos.x = rx
   self.map_pos.y = ry
 end
@@ -141,7 +157,6 @@ end
 --------------------
 function Samus:clearFixtures()
   if self.body.fixtures then
---    print "clearing samus fixtures"
     local fixtures = self.body.fixtures
     for i,fixture in pairs(fixtures) do
       fixture:destroy()
@@ -154,7 +169,6 @@ function Samus:addFixture(name)
   if not self.body.fixtures then
     self.body.fixtures = {}
   end
---  print("add fixture: "..name)
   fixture = self.body:addPolygon(self.fixture_data[name].poly)
   fixture.id = name
   fixture:setFriction(self.fixture_data[name].friction)
@@ -176,6 +190,8 @@ end
 function Samus:setBallFixtures()
   self:clearFixtures()
   self:addFixture('ball')
+  self:addFixture('ball_sensor')
+  self.body.fixtures['ball_sensor']:setSensor(true)
 end
 
 --------------------
@@ -273,13 +289,12 @@ end
 function Samus:up (down)
   if down then
 --    print("self.status.action == "..self.status.action)
-    if self.status.action ~= 'flip' then
+    if self.status.in_ball then
+      self:action('getup')
+    elseif self.status.action ~= 'flip' then
       self:aim('up')
     end
 
-    if self.status.in_ball then
-      self:action('getup')
-    end
   else
     self:aim()
   end
@@ -338,6 +353,10 @@ function Samus:face(face)
   self.status.facing = face
 
   self:updateView()
+end
+
+function Samus:reset()
+  
 end
 
 function Samus:action(action)
@@ -409,6 +428,9 @@ function Samus:duck ()
 end
 
 function Samus:getup ()
+  if self.status.ball_sensor_contacts > 0 then
+    return
+  end
   self.status.action = 'getup'
   self:setStandFixtures()
   self.status.in_ball = false
@@ -433,7 +455,7 @@ function Samus:jump ()
   self.speed = 60
 --  print "on floor: false"
 
-  if self:isMoving() then
+  if self:isMoving() and not self.status.aiming_up then
     self.status.action = 'jumpToFlip'
   else
     self.status.action = 'jump'
@@ -443,7 +465,7 @@ function Samus:jump ()
   else
     self.body:applyLinearImpulse(0,225)
   end
---  sounds.play('jump')
+  sounds.play('jump')
 end
 
 function Samus:flip ()
@@ -489,6 +511,8 @@ function Samus:land ()
 end
 
 function Samus:aim (dir)
+  if self.status.in_ball then return end
+
   if dir == 'up' then
     self.status.aiming_up = true
   else
@@ -515,7 +539,46 @@ end
 function Samus:fireWeapon ()
 --  self.status.firing = true
 
-  -- TODO: spawn bullet
+  local gx, gy = self.body:getPosition()
+
+  local dir
+  local bx, by
+  if self.status.aiming_up then
+    dir = 'up'
+    bx = gx
+    by = gy
+  elseif self.status.facing == 'left' then
+    dir = 'left'
+    bx = gx-10
+    by = gy+21
+  elseif self.status.facing == 'right' then
+    dir = 'right'
+    bx = gx+10
+    by = gy+21
+  end
+
+  local weapon
+  if self.gear.icebeam then
+    weapon = 'icebeam'
+    sounds.play('icebeam')
+  elseif self.gear.wavebeam then
+    weapon = 'wavebeam'
+    sounds.play('wavebeam')
+  else
+    weapon = 'normal'
+    if self.gear.longbeam then
+      sounds.play('longbeam')
+    else
+      sounds.play('shortbeam')
+    end
+  end
+
+  local longbeam = false
+  if self.gear.longbeam then
+    longbeam = true
+  end
+
+  local bullet = require('bullet'):new(bx, by, dir, weapon, longbeam)
 
   self:updateView()
 end
@@ -565,15 +628,15 @@ function Samus:enterDoor(dir)
   end
 
   local x,y = self.body:getPosition()
-  local rx, ry = map_mgr.getMapPosFromGlobalLoc(x,y)
+  local rx, ry = map_mgr.getMapPosForGlobalLoc(x,y)
 
   local factor
   if dir == 'right' then
     factor = 1
-    map_mgr:populateRoom(rx+1, ry)
+    fixture_map:populateRoom(rx+1, ry)
   elseif dir == 'left' then
     factor = -1
-    map_mgr:populateRoom(rx-1, ry)
+    fixture_map:populateRoom(rx-1, ry)
   end
     
   local thread = MOAICoroutine.new()
@@ -605,6 +668,13 @@ function Samus:enterDoor(dir)
 
     self.status.in_door = false
     self.status.busy = false
+    if self.view.anim then
+      self.view.anim:start()
+    end
+    if self.status.on_floor then
+      self.status.floor_contacts = 1
+      self:land()
+    end
   end )
 end
 
@@ -646,12 +716,42 @@ function Samus:isMoving()
   return (self.move.left and not self.move.right) or (self.move.right and not self.move.left)
 end
 
+function Samus:getItem(item)
+  local gift = item.gift
+  print(gift)
+  if gift == 'missile' then
+    table.insert(self.gear.missiles, item.rx.."-"..item.ry)
+  elseif gift == 'energy tank' then
+    table.insert(self.gear.energy_tanks, item.rx.."-"..item.ry)
+  elseif gift == 'ball' then
+    self.gear.ball = true
+  elseif gift == 'varia' then
+    self.gear.varia = true
+  elseif gift == 'boots' then
+    self.gear.boots = true
+  elseif gift == 'screw' then
+    self.gear.screw = true
+  elseif gift == 'longbeam' then
+    self.gear.longbeam = true
+  elseif gift == 'icebeam' then
+    self.gear.icebeam = true
+  elseif gift == 'wavebeam' then
+    self.gear.wavebeam = true
+  elseif gift == 'bomb' then
+    self.gear.bomb = true
+  end
+
+--  music.interrupt('norfair')
+end
+
 --------------------
 -- Game events
 --------------------
 function Samus:onCollision (fix_a, fix_b)
-  if fix_a.id == 'foot' then
-    if fix_b.id == 'floor' then
+  if fix_b.id == 'item' then
+    self:getItem(fix_b:getBody().parent)
+  elseif fix_b.id == 'floor' then
+    if fix_a.id == 'foot' then
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 then
         self:land()
@@ -660,25 +760,29 @@ function Samus:onCollision (fix_a, fix_b)
           self.status.floor_contacts = 2
         end
       end
+    elseif fix_a.id == 'ball_sensor' then
+      self.status.ball_sensor_contacts = self.status.ball_sensor_contacts + 1
+      if self.status.ball_sensor_contacts > 2 then
+        self.status.ball_sensor_contacts = 2
+      end
     end
-  else
-    if fix_b.id == 'floor' then
-    elseif fix_b.id == 'door' then
+  elseif fix_b.id == 'door' then
+    if fix_a.id == 'body' then
       self.status.door_contacts = self.status.door_contacts + 1
       if not self.status.in_door then
         self:enterDoor(fix_b.dir)
       end
-    elseif fix_b.id == 'lava' then
-      self:enterLava()
-    else
-      self:takeHit(fix_b.parent)
     end
+  elseif fix_b.id == 'lava' then
+    self:enterLava()
+  elseif fix_b.id == 'enemy' then
+    self:takeHit(fix_b.parent)
   end
 end
 
 function Samus:endCollision (fix_a, fix_b)
-  if fix_a.id == 'foot' then
-    if fix_b.id == 'floor' then
+  if fix_b.id == 'floor' then
+    if fix_a.id == 'foot' then
       self.status.floor_contacts = self.status.floor_contacts - 1
       if self.status.floor_contacts < 0 then
         self.status.floor_contacts = 0
@@ -687,7 +791,14 @@ function Samus:endCollision (fix_a, fix_b)
       if dy <= 0 and self.status.floor_contacts == 0 then
         self:fall()
       end
-    elseif fix_b.id == 'door' then
+    elseif fix_a.id == 'ball_sensor' then
+      self.status.ball_sensor_contacts = self.status.ball_sensor_contacts - 1
+      if self.status.ball_sensor_contacts < 0 then
+        self.status.ball_sensor_contacts = 0
+      end
+    end
+  elseif fix_b.id == 'door' then
+    if fix_a.id == 'body' then
       self.status.door_contacts = self.status.door_contacts - 1
       if self.status.door_contacts == 0 then
         self:exitDoor()

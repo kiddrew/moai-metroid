@@ -1,6 +1,6 @@
 module(..., package.seeall)
 
-local room_data = require('data/rooms')
+local room_data = require('data/room_data')
 local structure_mgr = require('structure_mgr')
 
 return {

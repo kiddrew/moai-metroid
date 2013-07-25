@@ -15,7 +15,7 @@ function camera:swapDirection()
 end
 
 function camera:setRoomLoc(rx,ry)
-  local x,y = map_mgr.getGlobalLocFromMapPos(rx, ry)
+  local x,y = map_mgr.getGlobalLocForMapPos(rx, ry)
   self:setLoc(x+128, y+120)
 end
 
@@ -23,7 +23,7 @@ function camera:seekRoomLoc(rx, ry, duration)
   if not duration then
     duration = 1
   end
-  local x,y = map_mgr.getGlobalLocFromMapPos(rx, ry)
+  local x,y = map_mgr.getGlobalLocForMapPos(rx, ry)
   MOAIThread.blockOnAction(self:seekLoc(x+128, y+120, duration))
 end
 
@@ -36,7 +36,7 @@ function camera:updateLocForSamus(samus)
   local dx = 0
   local dy = 0
 
-  local rx, ry = map_mgr.getMapPosFromGlobalLoc(sx, sy)
+  local rx, ry = map_mgr.getMapPosForGlobalLoc(sx, sy)
 
   local doors = map_mgr.getDoorsForMapPos(rx, ry)
 
@@ -76,7 +76,7 @@ end
 function camera:correctLoc()
   local x,y = self:getLoc()
 
-  local rx,ry = map_mgr.getMapPosFromGlobalLoc(x,y)
+  local rx,ry = map_mgr.getMapPosForGlobalLoc(x,y)
 
   self:seekRoomLoc(rx, ry, 0.1)
 end

@@ -20,18 +20,14 @@ function Bullet:new (x, y, dir, weapon, longbeam)
     },
   }, Bullet_mt)
 
-  if dir == 'right' then
-    this.body = world:addBody(MOAIBox2DBody.KINEMATIC, x+10, y+21)
-  elseif dir == 'left' then
-    this.body = world:addBody(MOAIBox2DBody.KINEMATIC, x-10, y+21)
-  elseif dir == 'up' then
-  end
+  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, x, y)
 
   this.body:setFixedRotation(true)
   this.body.parent = this
+  this.body:setBullet(true)
   this.fixture = this.body:addRect(-2, -2.5, 2, 2.5)
-  this.fixture.parent = this
   this.fixture.id = 'bullet'
+  this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
   this.fixture:setSensor(true)
 
   if dir == 'right' then
@@ -78,17 +74,28 @@ function Bullet:updateWorld()
 end
 
 function Bullet:onCollision(fix_a, fix_b)
+  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'door' then
+    self:destroy()
+  end
 end
 
 function Bullet:endCollision(fix_a, fix_b)
 end
 
 function Bullet:destroy()
-  p_layer:removeProp(self.prop)
-  self.fixture:destroy()
-  self.fixture = nil
-  self.body:destroy()
-  self.body = nil
+  if self.prop then
+    self.prop:setDeck(nil)
+    p_layer:removeProp(self.prop)
+    self.prop = nil
+  end
+  if self.fixture then
+    self.fixture:destroy()
+    self.fixture = nil
+  end
+  if self.body then
+    self.body:destroy()
+    self.body = nil
+  end
 end
 
 return Bullet

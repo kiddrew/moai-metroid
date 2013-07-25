@@ -26,6 +26,9 @@ return {
 
     return offset + tonumber(tid, 16) + 1
   end,
+  getData = function(tid)
+    return tile_data[tid]
+  end,
   getPoly = function(tid)
     if tile_data[tid] and tile_data[tid].poly then
       return tile_data[tid].poly
