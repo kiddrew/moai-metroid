@@ -9,7 +9,7 @@ function Item:new(data)
   local tx = data.tx
   local ty = data.ty
 
-  local x,y = map_mgr.getGlobalLocForMapPos(rx, ry)
+  local x,y = map_mgr.getGlobalPosForMapPos(rx, ry)
 
   local this = setmetatable({
     rx = data.rx,
@@ -23,6 +23,7 @@ function Item:new(data)
   this.fixture = this.body:addPolygon(data.poly)
   this.fixture.parent = this
   this.fixture.id = 'item'
+--  this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
 
   local deck = MOAITileDeck2D.new()
   this.deck = deck
@@ -58,6 +59,7 @@ function Item:new(data)
 end
 
 function Item:destroy()
+  print "Item:destroy()"
   self.prop:setDeck(nil)
   p_layer:removeProp(self.prop)
   self.body:destroy()
@@ -67,9 +69,13 @@ function Item:destroy()
 end
 
 function Item:onCollision(fix_a, fix_b)
-  if fix_b:getBody().parent.id == 'samus' then
-    self:destroy()
-  end
+  print "Item:onCollision"
+  local thread = MOAICoroutine.new()
+  thread:run( function()
+    if fix_b:getBody().parent.id == 'samus' then
+      self:destroy()
+    end
+  end )
 end
 
 function Item:endCollision(fix_a, fix_b)

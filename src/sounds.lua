@@ -1,12 +1,12 @@
 module ( ..., package.seeall )
 
-local soundFiles = require('data/soundFiles')
+local sound_files = require('data/sound_files')
 
 local sounds = {}
 local volume = 1
 
 -- cache the files
-for name, file in pairs ( soundFiles ) do
+for name, file in pairs ( sound_files ) do
 	local untz = MOAIUntzSound.new ()
 	untz:load ( '../resources/sounds/' .. file )
 	untz:setVolume ( volume )
@@ -31,7 +31,7 @@ return {
       untz = untz
     }
     --[[
-		local file = soundFiles[name]
+		local file = sound_files[name]
 		local untz = MOAIUntzSound.new ()
 		untz:load ( '../resources/sounds/' .. file )
 		untz:setVolume ( volume )

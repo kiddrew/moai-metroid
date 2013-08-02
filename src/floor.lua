@@ -27,13 +27,13 @@ function Floor:new(gx, gy, tile_data)
   if poly ~= -1 then
     this.fixture = this.body:addPolygon(poly)
     this.fixture.id = 'floor'
+    this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
   end
 
   return this
 end
 
 function Floor:destroy()
-  print("floor:destroy  "..self.gx..","..self.gy)
   if self.body then
     self.body:destroy()
     self.body = nil
@@ -42,6 +42,9 @@ function Floor:destroy()
     self.fixture:destroy()
     self.fixture = nil
   end
+
+  local gtx, gty = map_mgr.getGlobalTilePosForGlobalPos(self.gx, self.gy)
+  tile_map:setTile(gtx, gty, 0)
 end
 
 function Floor:onCollision(fix_a, fix_b)

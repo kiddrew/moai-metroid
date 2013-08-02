@@ -6,5 +6,9 @@ return {
   longbeam = 'long_beam.wav',
   icebeam = 'ice_beam.wav',
   wavebeam = 'wave_beam.wav',
+  bomb_set = 'bomb_set.wav',
+  bomb_explode = 'bomb_explode.wav',
+  morphball = 'samus_morphball.wav',
+  door = 'door.wav',
 }
 

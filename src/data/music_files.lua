@@ -1,7 +1,12 @@
 module(..., package.seeall)
 
 return {
-  brinstar = 'brinstar.mp3',
-  norfair = 'norfair.mp3',
-  item = 'item.mp3',
+  brinstar = {
+    file = 'brinstar.mp3',
+    loop_point = 96,
+  },
+  item = {
+    file = '05 - Item Obtainment Jingle.mp3',
+    loop_point = 4,
+  },
 }

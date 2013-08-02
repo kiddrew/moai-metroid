@@ -13,6 +13,7 @@ function Bullet:new (x, y, dir, weapon, longbeam)
     x = x,
     y = y,
     dir = dir,
+    dmg = 2,
     weapon = weapon,
     longbeam = longbeam,
     status = {
@@ -42,7 +43,7 @@ function Bullet:new (x, y, dir, weapon, longbeam)
   prop:setDeck(deck)
   prop:setParent(this.body)
   this.prop = prop
-  prop:setLoc(-2,0)
+  prop:setLoc(0,0)
   if dir == 'left' then
     prop:setScl(-1,1)
   end
@@ -56,6 +57,13 @@ end
 function Bullet:updateWorld()
   local gx, gy = self.body:getPosition()
   local distance = 256
+
+  if self.dir == 'left' or self.dir == 'right' then
+    local dx, dy = self.body:getLinearVelocity()
+    self.body:setLinearVelocity(dx, 5)
+  elseif self.dir == 'up' then
+    self.body:setLinearVelocity(0,205)
+  end
 
   -- check if bullet needs to die
   if self.longbeam == false then
@@ -74,7 +82,7 @@ function Bullet:updateWorld()
 end
 
 function Bullet:onCollision(fix_a, fix_b)
-  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'door' then
+  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'bubble' then
     self:destroy()
   end
 end
@@ -83,19 +91,15 @@ function Bullet:endCollision(fix_a, fix_b)
 end
 
 function Bullet:destroy()
-  if self.prop then
-    self.prop:setDeck(nil)
-    p_layer:removeProp(self.prop)
-    self.prop = nil
-  end
-  if self.fixture then
-    self.fixture:destroy()
-    self.fixture = nil
-  end
-  if self.body then
-    self.body:destroy()
-    self.body = nil
-  end
+  self.prop:setDeck(nil)
+  p_layer:removeProp(self.prop)
+  self.prop = nil
+
+  self.fixture:destroy()
+  self.fixture = nil
+
+  self.body:destroy()
+  self.body = nil
 end
 
 return Bullet

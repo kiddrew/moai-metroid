@@ -1,5 +1,4 @@
-local data = require('data/samus')
-local data_child = require('data/samus_child')
+local states = require('data/states/samus')
 require 'unit'
 
 module ( ..., package.seeall)
@@ -28,7 +27,7 @@ function SamusChild:setState(name)
   if debug then
     print("set child state: "..name)
   end
-  setupObjGfx(self, data_child, name)
+  setupObjGfx(self, states.child, name)
 
   self.prop:setDeck(self.deckcache[name])
   self.prop:setVisible(true)
@@ -78,7 +77,7 @@ function SamusView:setState(name)
   if debug then
     print("next state: "..name)
   end
-  setupObjGfx(self, data, name)
+  setupObjGfx(self, states.parent, name)
 
   if debug and not self.deckcache[name] then
     print("deckcache not set!")
@@ -95,11 +94,24 @@ function SamusView:setState(name)
   self.action = name
 end
 
+function SamusView:getDeckIndex(samus)
+  local index = 1
+
+  if samus.status.missile_mode then
+    index = index + deck_size[1]
+  end
+  if samus.gear.varia then
+    index = index + 2*deck_size[1]
+  end
+
+  return index
+end
+
 function SamusView:setChildState(name)
   self.child:setState(name)
 end
 
-function SamusView:updateForObject(samus)
+function SamusView:updateForSamus(samus)
   self:update(samus.status.action, samus.status.facing, samus.status.aiming_up, samus.status.firing)
 end
 

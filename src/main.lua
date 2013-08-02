@@ -78,7 +78,7 @@ _G.tile_mgr = require('tile_mgr')
 _G.room_mgr = require('room_mgr')
 _G.fixture_map = require('fixture_map')
 _G.tile_map = require('tile_map')
-tile_map.init()
+tile_map:init()
 
 _G.collision = require('collision')
 _G.gameObjects = {}
@@ -128,7 +128,7 @@ gameLoop:run(function()
           end
           obj.body:setLinearVelocity(dx, dy)
         end
-  
+
         obj:updateWorld()
       end
     end

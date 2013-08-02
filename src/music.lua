@@ -1,6 +1,6 @@
 module (..., package.seeall)
 
-local musicFiles = require('data/musicFiles')
+local music_files = require('data/music_files')
 
 local volume = 0.25
 local bg = nil
@@ -13,6 +13,9 @@ function _M.init ()
   bg = MOAIUntzSound.new ()
   bg:setVolume ( volume )
   bg:setLooping ( true )
+  for k,v in pairs(music_files) do
+    bg:load('../resources/music/' .. music_files[k].file)
+  end
 end
 
 function _M.pause ()
@@ -25,31 +28,36 @@ function _M.stop ()
   playing = false
 end
 
-function _M.play ( song )
-  print("bg:load "..song)
-  bg:load ( '../resources/music/' .. musicFiles[song] )
-  print "bg:play"
+function _M.play ( new_song )
+  bg:load ( '../resources/music/' .. music_files[new_song].file )
+  bg:setLooping(true)
+  bg:setLoopPoints(0, music_files[new_song].loop_point)
   bg:play ()
   playing = true
-  song = song
+  song = new_song
 end
 
 function _M.interrupt ( new_song )
   local old_song = song
-  bg:stop()
-  print "song stopped"
-  bg:setLooping(false)
-  print "looping false"
-  _M.play(new_song)
-  print "_M.play"
   local thread = MOAICoroutine.new()
+  bg:setLooping(false)
+  bg:setLoopPoints(0, music_files[new_song].loop_point)
   thread:run( function()
+    bg:load('../resources/music/'..music_files[new_song].file)
+    bg:play()
+
     while bg:isPlaying() do
-      coroutine.yield()
+      coroutine:yield()
     end
+
+    bg:setLooping(true)
+    _M.stop()
+    _M.play(old_song)
   end )
-  bg:setLooping(true)
-  _M.play(old_song)
+end
+
+function _M.isPlaying()
+  return bg:isPlaying()
 end
 
 return _M

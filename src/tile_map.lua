@@ -4,10 +4,6 @@ local tile_map = MOAIGrid.new()
 tile_map:initRectGrid(512, 480, 16, 16)
 tile_map:fill(0)
 
-function tile_map:removeTile(gtx, gty)
-  tile_map:setTile(gtx, gty, nil)
-end
-
 function tile_map:init()
   for rx = 1,32 do
     for ry = 1,32 do
@@ -22,7 +18,7 @@ function tile_map:init()
             local tid = tiles[tx][ty]
             if tid > 0 then
               if not debug then
-                tile_map:setTile((rx-1)*16+tx, 496-15*ry-ty, tid)
+                self:setTile((rx-1)*16+tx, 496-15*ry-ty, tid)
               end
               if debug then
                 local textbox = MOAITextBox.new()
@@ -45,7 +41,7 @@ function tile_map:init()
   mapTiles:setSize(16,64)
   local prop = MOAIProp2D.new()
   prop:setDeck(mapTiles)
-  prop:setGrid(tile_map)
+  prop:setGrid(self)
   prop:setLoc(-32*16*16/2, -32*16*15/2)
   m_layer:insertProp(prop)
 end

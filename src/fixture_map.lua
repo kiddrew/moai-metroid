@@ -18,8 +18,8 @@ end
 
 function fixture_map:updateRoomsForSamus(samus)
   local sx, sy = samus.body:getPosition()
-  local srx, sry = map_mgr.getCoordinatesInRoom(sx, sy)
-  local rx, ry = map_mgr.getMapPosForGlobalLoc(sx, sy)
+  local srx, sry = map_mgr.getCoordinatesInRoomForGlobalPos(sx, sy)
+  local rx, ry = map_mgr.getMapPosForGlobalPos(sx, sy)
 
   if srx < 32 then
     -- populate room left
@@ -55,7 +55,7 @@ function fixture_map:populateRoom(rx, ry)
 end
 
 function fixture_map:populateRoomFixtures(rx, ry)
-  local x, y = map_mgr.getGlobalLocForMapPos(rx, ry)
+  local x, y = map_mgr.getGlobalPosForMapPos(rx, ry)
   local rid = map_mgr.getRoomIndex(rx, ry)
   local area = map_mgr.getRoomArea(rx, ry)
 
@@ -90,7 +90,7 @@ function fixture_map:populateRoomFixtures(rx, ry)
 end
 
 function fixture_map:populateRoomItems(rx, ry)
-  local x,y = map_mgr.getGlobalLocForMapPos(rx, ry)
+  local x,y = map_mgr.getGlobalPosForMapPos(rx, ry)
   local items = item_mgr.populateForRoom(rx, ry)
 
   local rci = rx.."-"..ry
