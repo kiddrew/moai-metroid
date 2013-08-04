@@ -9,7 +9,8 @@ function Samus:new ()
   local this = setmetatable({
     id = 'samus',
     health = 99,
-    missiles = 0,
+    missiles = 50,
+    max_missiles = 50,
     speed = 85,
     floor_y = nil,
     map_pos = {
@@ -47,7 +48,7 @@ function Samus:new ()
       lava_contacts = 0,
       facing = 'right',
       in_door = false,
-      firing = false,
+      firing_timeout = nil,
       lava_contact = 0,
     }
   }, Samus_mt)
@@ -55,9 +56,9 @@ function Samus:new ()
   this.gear = {
     energy_tanks = energy_tanks or {},
     missiles = missiles or {},
-    ball = ball or false,
-    bomb = bomb or false,
-    longbeam = longbeam or false,
+    ball = ball or true,
+    bomb = bomb or true,
+    longbeam = longbeam or true,
     icebeam = icebeam or false,
     wavebeam = wavebeam or false,
     boots = boots or false,
@@ -128,6 +129,12 @@ function Samus.init()
 end
 
 function Samus:updateWorld()
+  if self.status.firing_timeout then
+    if MOAISim.getDeviceTime() > self.status.firing_timeout then
+      self.status.firing_timeout = nil
+      self:updateView()
+    end
+  end
   self:updateMapPos()
   camera:updateLocForSamus(self)
   fixture_map:updateRoomsForSamus(self)
@@ -548,7 +555,7 @@ function Samus:fire ()
 end
 
 function Samus:fireWeapon ()
---  self.status.firing = true
+  self.status.firing_timeout = MOAISim.getDeviceTime() + 0.16
 
   local gx, gy = self.body:getPosition()
 
@@ -558,7 +565,7 @@ function Samus:fireWeapon ()
     if self.status.aiming_up then
       dir = 'up'
       bx = gx-1
-      by = gy+31
+      by = gy+32
     else
       dir = 'left'
       bx = gx-10
@@ -568,7 +575,7 @@ function Samus:fireWeapon ()
     if self.status.aiming_up then
       dir = 'up'
       bx = gx+1
-      by = gy+31
+      by = gy+32
     else
       dir = 'right'
       bx = gx+10
@@ -629,28 +636,57 @@ function Samus:cleanupBombCache()
 end
 
 function Samus:fireMissile ()
-  if self.gear.missiles == 0 then
+  if self.missiles == 0 then
     return false
   end
---  self.status.firing = true
-  self.gear.missiles = self.gear.missiles - 1
-  if self.gear.missiles == 0 then
-    self:toggleMissiles()
+
+  self.status.firing_timeout = MOAISim.getDeviceTime() + 0.16
+
+  self.missiles = self.missiles - 1
+  if self.missiles == 0 then
+    self.status.missile_mode = false
   end
 
-  -- TODO: spawn missile
+  local gx, gy = self.body:getPosition()
+
+  local dir
+  local bx, by
+  if self.status.facing == 'left' then
+    if self.status.aiming_up then
+      dir = 'up'
+      bx = gx-1
+      by = gy+31
+    else
+      dir = 'left'
+      bx = gx-10
+      by = gy+21
+    end
+  elseif self.status.facing == 'right' then
+    if self.status.aiming_up then
+      dir = 'up'
+      bx = gx+1
+      by = gy+31
+    else
+      dir = 'right'
+      bx = gx+10
+      by = gy+21
+    end
+  end
+
+  local missile = require('missile'):new(bx, by, dir)
 end
 
 function Samus:toggleMissiles ()
-  if self.gear.missiles == 0 then
-    self.missile_mode = false
+  if self.missiles == 0 then
+    self.status.missile_mode = false
     return false
   end
 
-  if self.missile_mode == true then
-    self.missile_mode = false
+  if self.status.missile_mode == true then
+    self.status.missile_mode = false
   else
-    self.missile_mode = true
+    print("switching to missiles")
+    self.status.missile_mode = true
   end
 
   self:updateView()
@@ -756,12 +792,18 @@ function Samus:isMoving()
 end
 
 function Samus:getItem(item)
+  if item.gotten then return end
+
   item.anim:pause()
+
+  item.gotten = true
 
   local gift = item.gift
   print("Samus:getItem "..gift)
   if gift == 'missile' then
     table.insert(self.gear.missiles, item.rx.."-"..item.ry)
+    self.missiles = self.missiles + 5
+    self.max_missiles = self.max_missiles + 5
   elseif gift == 'energy tank' then
     table.insert(self.gear.energy_tanks, item.rx.."-"..item.ry)
   elseif gift == 'ball' then

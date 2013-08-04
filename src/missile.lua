@@ -5,13 +5,15 @@ Missile_mt = {__index = Missile}
 
 local deck = MOAITileDeck2D.new()
 deck:setTexture('../resources/images/missile.png')
-deck:setSize(1,4)
-deck:setRect()
+deck:setSize(2,4)
+deck:setRect(-6,-6,6,6)
 
+--[[
 local e_deck = MOAITileDeck2D.new()
 e_deck:setTexture('../resources/images/missile_explode.png')
 e_deck:setSize()
-e_deck:setRect()
+e_deck:setRect(-6,-6,6,6)
+]]--
 
 local e_curve = MOAIAnimCurve:new()
 e_curve:reserveKeys(4)
@@ -32,14 +34,17 @@ function Missile:new (x, y, dir)
   this.body:setFixedRotation(true)
   this.body.parent = this
   this.body:setBullet(true)
-  this.fixture = this.body:addRect()
+  this.fixture = this.body:addRect(-6,-4,6,4)
   this.fixture.id = 'missile'
   this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
   this.fixture:setSensor(true)
 
   if dir == 'right' then
+    this.body:setLinearVelocity(220,0)
   elseif dir == 'left' then
+    this.body:setLinearVelocity(-220,0)
   elseif dir == 'up' then
+    this.body:setLinearVelocity(0,220)
   end
 
   local prop = MOAIProp2D.new()
@@ -54,10 +59,21 @@ function Missile:new (x, y, dir)
 
   insertGameObject(this)
 
+  sounds.play('missile')
+
   return this
 end
 
 function Missile:updateWorld()
+  local gx, gy = self.body:getPosition()
+  local distance = 256
+
+  if self.dir == 'left' or self.dir == 'right' then
+    local dx, dy = self.body:getLinearVelocity()
+    self.body:setLinearVelocity(dx, 5)
+  elseif self.dir == 'up' then
+    self.body:setLinearVelocity(0,225)
+  end
 end
 
 function Missile:onCollision(fix_a, fix_b)

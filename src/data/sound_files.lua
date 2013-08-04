@@ -10,5 +10,6 @@ return {
   bomb_explode = 'bomb_explode.wav',
   morphball = 'samus_morphball.wav',
   door = 'door.wav',
+  missile = 'rocket_shot.wav',
 }
 

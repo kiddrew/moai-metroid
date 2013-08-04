@@ -33,14 +33,6 @@ function SamusChild:setState(name)
   self.prop:setVisible(true)
 end
 
-function SamusChild:cancel(action)
-  print("cancel action: "..action)
-  if action == 'fire' then
-    self.parent.parent.status.firing = false
-  end
-  self:remove()
-end
-
 function SamusChild:remove()
   self.prop:setVisible(false)
 end
@@ -56,6 +48,7 @@ function SamusView:new(samus)
 
   local this = setmetatable({
     action = nil,
+    firing = false,
     parent = samus
   }, SamusView_mt)
 
@@ -112,13 +105,13 @@ function SamusView:setChildState(name)
 end
 
 function SamusView:updateForSamus(samus)
-  self:update(samus.status.action, samus.status.facing, samus.status.aiming_up, samus.status.firing)
+  self:update(samus.status.action, samus.status.facing, samus.status.aiming_up, not not samus.status.firing_timeout)
 end
 
 function SamusView:update(action, facing, aiming_up, firing)
   self:setFace(facing)
 
-  if self.action ~= action then
+  if self.action ~= action or self.firing ~= firing then
     if self.anim then
       self.anim:stop()
       self.anim:clear()
@@ -130,34 +123,19 @@ function SamusView:update(action, facing, aiming_up, firing)
     end
   
     -- update main prop
-    if action == 'spawn' then
-      self:setState('spawn')
-    elseif action == 'duck' then
-      self:setState('duck')
-    elseif action == 'roll' then
-      self:setState('roll')
-    elseif action == 'jumpToFlip' then
-      self:setState('jumpToFlip')
-    elseif action == 'flip' then
-      if firing == true then
-        self:setState('jump')
-      else
-        self:setState('flip')
-      end
-    elseif action == 'jump' then
-      self:setState('jump')
-    elseif action == 'run' then
-      self:setState('run')
-    else
-      self:setState('stand')
+    local state = action
+    if action == 'flip' and firing == true then
+      state = 'jump'
     end
+    self:setState(state)
+    self.firing = firing
   end
 
   self.child:remove()
   -- update child prop
   if aiming_up == true then
     self:setChildState('aimup')
-  elseif action == 'jump' and firing == true then
+  elseif (action == 'jump' or action == 'run' or action == 'flip') and firing == true then
     self:setChildState('fire')
   end
 

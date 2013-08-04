@@ -17,6 +17,7 @@ function Item:new(data)
     tx = data.tx,
     ty = data.ty,
     gift = data.gift,
+    gotten = false,
   }, Item_mt)
   this.body = world:addBody(MOAIBox2DBody.STATIC, x + (tx-1)*16, y + (15-ty)*16)
   this.body.parent = this
