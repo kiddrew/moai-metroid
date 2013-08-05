@@ -102,8 +102,6 @@ function Bubble:onCollision(fix_a, fix_b)
 end
 
 function Bubble:endCollision(fix_a, fix_b)
-  print("bubble end collision "..fix_b.id)
-  print(self.timeout)
   if fix_b:getBody().parent.id == 'samus' and fix_b:getBody().parent.status.in_door then
     if self.timeout then
       self:close()

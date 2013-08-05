@@ -4,6 +4,21 @@ local tile_map = MOAIGrid.new()
 tile_map:initRectGrid(512, 480, 16, 16)
 tile_map:fill(0)
 
+function tile_map:removeTile(gtx, gty)
+  return self:setTile(gtx, gty, 0)
+end
+
+function tile_map:setTileFromMapData(gtx, gty)
+  local rx, ry = map_mgr.getMapPosForGlobalTilePos(gtx, gty)
+  local rid = map_mgr.getRoomIndex(rx, ry)
+  local area = map_mgr.getRoomArea(rx, ry)
+  local tiles = room_mgr.getRoomTileGrid(area, rid)
+  local tx, ty = map_mgr.getRoomTilePosForGlobalTilePos(gtx, gty)
+  local tid = tiles[tx][ty]
+
+  self:setTile(gtx, gty, tid)
+end
+
 function tile_map:init()
   for rx = 1,32 do
     for ry = 1,32 do
@@ -19,8 +34,7 @@ function tile_map:init()
             if tid > 0 then
               if not debug then
                 self:setTile((rx-1)*16+tx, 496-15*ry-ty, tid)
-              end
-              if debug then
+              else 
                 local textbox = MOAITextBox.new()
                 textbox:setString(string.format('%X', tid))
                 textbox:setFont(font)

@@ -442,7 +442,7 @@ function Samus:getup ()
   if self.status.ball_sensor_contacts > 0 then
     return
   end
-  self.status.action = 'getup'
+  self.status.action = 'stand'
   self:setStandFixtures()
   self.status.in_ball = false
   print "Samus:getup"
@@ -866,7 +866,7 @@ function Samus:onCollision (fix_a, fix_b)
     if dy > 0 then
       self:fall()
     end
-  elseif fix_b.id == 'floor' then
+  elseif fix_b.id == 'floor' and not fix_b:getBody().parent.blast_timeout then
     if fix_a.id == 'foot' then
       local dx, dy = self.body:getLinearVelocity()
       if dy <= 0 then

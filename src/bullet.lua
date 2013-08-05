@@ -91,15 +91,21 @@ function Bullet:endCollision(fix_a, fix_b)
 end
 
 function Bullet:destroy()
-  self.prop:setDeck(nil)
-  p_layer:removeProp(self.prop)
-  self.prop = nil
+  if self.prop then
+    self.prop:setDeck(nil)
+    p_layer:removeProp(self.prop)
+    self.prop = nil
+  end
 
-  self.fixture:destroy()
-  self.fixture = nil
+  if self.fixture then
+    self.fixture:destroy()
+    self.fixture = nil
+  end
 
-  self.body:destroy()
-  self.body = nil
+  if self.body then
+    self.body:destroy()
+    self.body = nil
+  end
 end
 
 return Bullet

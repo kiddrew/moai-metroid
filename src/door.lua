@@ -14,8 +14,6 @@ function Door:new (gx, gy, pos)
     pos = pos,
   }, Door_mt)
 
-  print("Door:new at "..this.gx..","..this.gy.." "..this.pos)
-
   this.body = world:addBody(MOAIBox2DBody.STATIC, this.gx, this.gy)
   this.body.parent = this
   this.fixture = this.body:addRect(0,0,16,48)

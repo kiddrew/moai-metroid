@@ -41,7 +41,7 @@ function Bomb:new (gx, gy)
     this:destroy()
   end
   
-  this.body = world:addBody(MOAIBox2DBody.STATIC, gx, gy)
+  this.body = world:addBody(MOAIBox2DBody.DYNAMIC, gx, gy)
 
   this.body:setFixedRotation(true)
   this.body.parent = this
@@ -78,6 +78,7 @@ function Bomb:new (gx, gy)
 end
 
 function Bomb:updateWorld()
+  self.body:setLinearVelocity(0,5)
   if not self.exploded and MOAISim.getDeviceTime()-self.ts > 1 then
     self:explode()
   end

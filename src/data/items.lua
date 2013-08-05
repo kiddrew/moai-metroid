@@ -108,6 +108,12 @@ return {
     frames = {1,2,3,4,4},
     anim_step = 0.16/4,
     locs = {
+      {
+        rx = 10,
+        ry = 15,
+        tx = 3,
+        ty = 2,
+      },
     }
   },
   missiles = {

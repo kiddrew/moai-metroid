@@ -7,6 +7,10 @@ function map_mgr.getMapPosForGlobalPos(gx,gy)
   return math.floor((gx+4096)/256)+1, 32-math.floor((gy+3840)/240)
 end
 
+function map_mgr.getMapPosForGlobalTilePos(gtx, gty)
+  return math.floor((gtx-1)/16)+1, 32-math.floor((gty-1)/15)
+end
+
 function map_mgr.getCoordinatesInRoomForGlobalPos(gx,gy)
   return (gx+4096)%256, (gy+3840)%240
 end
@@ -17,6 +21,10 @@ end
 
 function map_mgr.getRoomPosForTilePos(tx, ty)
   return (tx-1)*16, (15-ty)*16
+end
+
+function map_mgr.getRoomTilePosForGlobalTilePos(gtx, gty)
+  return gtx % 16, 16 - gty % 15
 end
 
 function map_mgr.getGlobalTilePosForGlobalPos(gx, gy)
