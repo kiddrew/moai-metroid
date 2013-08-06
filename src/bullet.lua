@@ -82,7 +82,7 @@ function Bullet:updateWorld()
 end
 
 function Bullet:onCollision(fix_a, fix_b)
-  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'bubble' then
+  if (fix_b.id == 'floor' and not fix_b:getBody().parent.blast_timeout) or fix_b.id == 'enemy' or (fix_b.id == 'bubble' and not fix_b:getBody().parent.timeout) then
     self:destroy()
   end
 end

@@ -3,7 +3,7 @@ module(..., package.seeall)
 Door = {}
 Door_mt = {__index = Door}
 
-function Door:new (gx, gy, pos)
+function Door:new (gx, gy, pos, hp)
   if pos == 'right' then
     gx = gx + 240
   end
@@ -19,7 +19,7 @@ function Door:new (gx, gy, pos)
   this.fixture = this.body:addRect(0,0,16,48)
   this.fixture:setSensor(true)
   this.fixture.id = 'door'
-  this.bubble = require('bubble'):new(this)
+  this.bubble = require('bubble'):new(this, hp)
 
   return this
 end

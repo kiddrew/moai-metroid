@@ -5,8 +5,8 @@ return {
       poly = {
         0,0,
         16,0,
-        16,1,
-        0,1
+        16,2,
+        0,2
       }
     },
     [0x42] = {
@@ -38,6 +38,9 @@ return {
     [0x23] = { -- item orb
       blast = true,
     },
+    [0x24] = { -- item orb
+      blast = true,
+    },
     [0x25] = { -- blastable square rock
       blast = true,
     },
@@ -53,10 +56,31 @@ return {
     [0x29] = { -- blank
       poly = -1,
     },
+    [0x2A] = { -- blank
+      poly = -1,
+    },
+    [0x2B] = {
+      poly = -1,
+    },
     [0x2C] = { -- passable
       poly = -1,
     },
+    [0x2D] = {
+      poly = -1,
+    },
+    [0x2E] = {
+      poly = -1,
+    },
+    [0x2F] = {
+      poly = -1,
+    },
     [0x30] = {
+      blast = true,
+    },
+    [0x70] = {
+      blast = true,
+    },
+    [0xB0] = {
       blast = true,
     },
     [0x32] = {
@@ -172,6 +196,14 @@ return {
         16,16
       },
     },
+    [0x56] = {
+      poly = {
+        0,0,
+        16,0,
+        16,8,
+        0,8,
+      },
+    },
     [0x62] = {
       poly = -1
     },
@@ -185,6 +217,21 @@ return {
       poly = -1
     },
     [0x69] = {
+      poly = -1
+    },
+    [0x6A] = {
+      poly = -1
+    },
+    [0x6B] = {
+      poly = -1
+    },
+    [0x6C] = {
+      poly = -1
+    },
+    [0x6D] = {
+      poly = -1
+    },
+    [0x6E] = {
       poly = -1
     },
     [0xA9] = {

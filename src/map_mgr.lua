@@ -50,12 +50,4 @@ function map_mgr.getDoorsForMapPos(rx, ry)
   return room_mgr.getRoomDoors(area, rid)
 end
 
-function map_mgr.getDoor(rx, ry, pos)
-  local gx,gy = map_mgr.getGlobalPosForMapPos(rx, ry)
-
-  local door = require('door'):new(gx, gy, pos)
-
-  return door
-end
-
 return map_mgr

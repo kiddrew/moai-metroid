@@ -14,8 +14,8 @@ function Samus:new ()
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 6,
-      y = 15,
+      x = 21,
+      y = 8,
     },
     friction = {
       x = false,
@@ -43,7 +43,7 @@ function Samus:new ()
       aiming_up = false,
       on_floor = false,
       floor_contacts = 0,
-      ball_sensor_contacts = 0,
+      head_contacts = 0,
       door_contacts = 0,
       lava_contacts = 0,
       facing = 'right',
@@ -58,7 +58,7 @@ function Samus:new ()
     missiles = missiles or {},
     ball = ball or true,
     bomb = bomb or true,
-    longbeam = longbeam or true,
+    longbeam = longbeam or false,
     icebeam = icebeam or false,
     wavebeam = wavebeam or false,
     boots = boots or false,
@@ -74,24 +74,12 @@ function Samus:new ()
         -3.5,1,
         3.5,1,
         4,1.5,
-        4,30,
-        -4,30,
+        4,14,
+        -4,14,
         -4,1.5
       },
       friction = 0,
       restitution = 0,
-    },
-    ['ball'] = {
-      poly = {
-        -3.5,0,
-        3.5,0,
-        4,0.5,
-        4,14,
-        -4,14,
-        -4,0.5,
-      },
-      friction = 1,
-      restitution = 0.3,
     },
     ['foot'] = {
       poly = {
@@ -103,12 +91,14 @@ function Samus:new ()
       friction = 1,
       restitution = 0,
     },
-    ['ball_sensor'] = {
+    ['head'] = {
       poly = {
         -4,16,
         4,16,
-        4,30,
-        -4,30,
+        4,29.5,
+        3.5,30,
+        -3.5,30,
+        -4,29.5,
       },
       friction = 0,
       restitution = 0,
@@ -124,6 +114,10 @@ function Samus.init()
   local Samus = Samus:new()
   local sx, sy = map_mgr.getGlobalPosForMapPos(Samus.map_pos.x, Samus.map_pos.y)
   Samus:setBody(sx+128, sy+48)
+
+  Samus:addFixture('foot')
+  Samus:addFixture('body')
+  Samus:addFixture('head')
 
   return Samus
 end
@@ -191,17 +185,13 @@ function Samus:setStandFixtures()
   if self.status.in_ball == false then
     return
   end
-  self:clearFixtures()
-  self:addFixture('foot')
-  self:addFixture('body')
+  self.body.fixtures['head']:setSensor(false)
+  self.body.fixtures['body']:setRestitution(0)
 end
 
 function Samus:setBallFixtures()
-  self:clearFixtures()
-  self:addFixture('ball')
-  self:addFixture('foot')
-  self:addFixture('ball_sensor')
-  self.body.fixtures['ball_sensor']:setSensor(true)
+  self.body.fixtures['head']:setSensor(true)
+  self.body.fixtures['body']:setRestitution(0.3)
 end
 
 --------------------
@@ -439,7 +429,7 @@ function Samus:duck ()
 end
 
 function Samus:getup ()
-  if self.status.ball_sensor_contacts > 0 then
+  if self.status.head_contacts > 0 then
     return
   end
   self.status.action = 'stand'
@@ -492,7 +482,7 @@ end
 function Samus:fall ()
   self.speed = 60
   self.status.on_floor = false
-  self.friction.x = false
+  self.friction.x = true
   if not self.status.in_ball then
     self.status.action = 'jump'
   end
@@ -599,12 +589,7 @@ function Samus:fireWeapon ()
     end
   end
 
-  local longbeam = false
-  if self.gear.longbeam then
-    longbeam = true
-  end
-
-  local bullet = require('bullet'):new(bx, by, dir, weapon, longbeam)
+  local bullet = require('bullet'):new(bx, by, dir, weapon, self.gear.longbeam)
 
   self:updateView()
 end
@@ -818,8 +803,10 @@ function Samus:getItem(item)
     self.gear.longbeam = true
   elseif gift == 'icebeam' then
     self.gear.icebeam = true
+    self.gear.wavebeam = false
   elseif gift == 'wavebeam' then
     self.gear.wavebeam = true
+    self.gear.icebeam = false
   elseif gift == 'bomb' then
     self.gear.bomb = true
   end
@@ -842,6 +829,7 @@ function Samus:getItem(item)
       self.view.anim:start()
     end
     item:destroy()
+    paused = false
   end )
 
 end
@@ -876,10 +864,10 @@ function Samus:onCollision (fix_a, fix_b)
           self.status.floor_contacts = 2
         end
       end
-    elseif fix_a.id == 'ball_sensor' then
-      self.status.ball_sensor_contacts = self.status.ball_sensor_contacts + 1
-      if self.status.ball_sensor_contacts > 2 then
-        self.status.ball_sensor_contacts = 2
+    elseif fix_a.id == 'head' then
+      self.status.head_contacts = self.status.head_contacts + 1
+      if self.status.head_contacts > 2 then
+        self.status.head_contacts = 2
       end
     end
   elseif fix_b.id == 'door' then
@@ -907,10 +895,10 @@ function Samus:endCollision (fix_a, fix_b)
       if dy <= 0 and self.status.floor_contacts == 0 then
         self:fall()
       end
-    elseif fix_a.id == 'ball_sensor' then
-      self.status.ball_sensor_contacts = self.status.ball_sensor_contacts - 1
-      if self.status.ball_sensor_contacts < 0 then
-        self.status.ball_sensor_contacts = 0
+    elseif fix_a.id == 'head' then
+      self.status.head_contacts = self.status.head_contacts - 1
+      if self.status.head_contacts < 0 then
+        self.status.head_contacts = 0
       end
     end
   elseif fix_b.id == 'door' then

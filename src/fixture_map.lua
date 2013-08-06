@@ -63,15 +63,17 @@ function fixture_map:populateRoomFixtures(rx, ry)
 
   local rci = rx.."-"..ry
 
+  local gx, gy = map_mgr.getGlobalPosForMapPos(rx, ry)
+
   -- build doors
   local doors = room_mgr.getRoomDoors(area, rid)
   if doors then
     if doors.left then
-      local door = map_mgr.getDoor(rx, ry, 'left')
+      local door = require('door'):new(gx, gy, 'left', doors.left)
       table.insert(self.room_cache[rci], door)
     end
     if doors.right then
-      local door = map_mgr.getDoor(rx, ry, 'right')
+      local door = require('door'):new(gx, gy, 'right', doors.right)
       table.insert(self.room_cache[rci], door)
     end
   end

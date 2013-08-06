@@ -11,5 +11,6 @@ return {
   morphball = 'samus_morphball.wav',
   door = 'door.wav',
   missile = 'rocket_shot.wav',
+  ricochet = 'ricochet.wav',
 }
 

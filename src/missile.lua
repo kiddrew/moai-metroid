@@ -77,6 +77,9 @@ function Missile:updateWorld()
 end
 
 function Missile:onCollision(fix_a, fix_b)
+  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'bubble' then
+    self:destroy()
+  end
 end
 
 function Missile:endCollision(fix_a, fix_b)
