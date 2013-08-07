@@ -12,6 +12,7 @@ function Door:new (gx, gy, pos, hp)
     gx = gx,
     gy = gy+112,
     pos = pos,
+    change_camera_dir = true,
   }, Door_mt)
 
   this.body = world:addBody(MOAIBox2DBody.STATIC, this.gx, this.gy)
@@ -20,6 +21,10 @@ function Door:new (gx, gy, pos, hp)
   this.fixture:setSensor(true)
   this.fixture.id = 'door'
   this.bubble = require('bubble'):new(this, hp)
+
+  if hp > 0 then
+    this.change_camera_dir = false
+  end
 
   return this
 end

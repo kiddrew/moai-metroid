@@ -729,7 +729,9 @@ function Samus:enterDoor(door)
     until math.abs(dx - x) >= 51
 
     -- swap camera direction
-    camera:swapDirection()
+    if door.change_camera_dir then
+      camera:swapDirection()
+    end
 
     self.status.in_door = false
     self.status.busy = false
