@@ -1,15 +1,16 @@
-function setupObjGfx(unit, data, name)
+function setupObjGfx(unit, data, name, deck_row)
+  deck_row = deck_row or 1
+
   if not unit.deckcache then
     unit.deckcache = {}
   elseif unit.deckcache[name] then
-    return unit.deckcache[name]
+--    return unit.deckcache[name]
   end
 
   if not unit.animcache then
     unit.animcache = {}
-  end
-  if unit.animcache[name] then
-    return unit.animcache[name]
+  elseif unit.animcache[name] then
+--    return unit.animcache[name]
   end
 
   local gfxData = data[name]
@@ -29,8 +30,11 @@ function setupObjGfx(unit, data, name)
     local frames = gfxData.frames
     local curve = MOAIAnimCurve:new()
     curve:reserveKeys(#frames)
-    for i = 1, #frames do
-      curve:setKey(i, gfxData.anim_step*(i-1), frames[i], MOAIEaseType.FLAT)
+    local frame_count = #frames
+    print("frame count "..frame_count)
+    print("deck row "..deck_row)
+    for i = 1, frame_count do
+      curve:setKey(i, gfxData.anim_step*(i-1), frames[i]+gfxData.size[1]*(deck_row-1), MOAIEaseType.FLAT)
     end
   
     function nextState()
@@ -62,6 +66,10 @@ function setupObjGfx(unit, data, name)
       end
     end
 
-    unit.animcache[name] = anim
+--    unit.animcache[name] = anim
+    unit.anim = anim
   end
+
+  unit.prop:setDeck(deck)
+  unit.prop:setIndex(1+gfxData.size[1]*(deck_row-1))
 end

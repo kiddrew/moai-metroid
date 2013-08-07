@@ -9,7 +9,6 @@ deck:setSize(3,3)
 deck:setRect(0,0,8,48)
 
 function Bubble:new(door, hp)
-  print("create bubble hp: "..hp)
   local gy = door.gy
   local gx
   local dir
@@ -51,7 +50,6 @@ function Bubble:new(door, hp)
   elseif hp == 10 then
     deck_offset = 6
   end
-  print("deck offset "..deck_offset)
 
   this.prop = MOAIProp2D.new()
   this.prop:setDeck(deck)

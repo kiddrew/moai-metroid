@@ -12,7 +12,23 @@ function Floor:new(gx, gy, tile_data)
     status = {
       busy = true
     },
+    tile_data = tile_data,
   }, Floor_mt)
+
+  this.body = world:addBody(MOAIBox2DBody.STATIC, gx, gy)
+  this.body.parent = this
+
+  this:setFixture()
+
+  if this.blast then
+    insertGameObject(this)
+  end
+
+  return this
+end
+
+function Floor:setFixture()
+  local tile_data = self.tile_data
 
   local poly
   if not tile_data or not tile_data.poly then
@@ -26,19 +42,11 @@ function Floor:new(gx, gy, tile_data)
     poly = tile_data.poly
   end
 
-  this.body = world:addBody(MOAIBox2DBody.STATIC, gx, gy)
-  this.body.parent = this
   if poly ~= -1 then
-    this.fixture = this.body:addPolygon(poly)
-    this.fixture.id = 'floor'
-    this.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
+    self.fixture = self.body:addPolygon(poly)
+    self.fixture.id = 'floor'
+    self.fixture:setCollisionHandler(collision.handler, MOAIBox2DArbiter.BEGIN)
   end
-
-  if this.blast then
-    insertGameObject(this)
-  end
-
-  return this
 end
 
 function Floor:updateWorld()
@@ -50,7 +58,7 @@ function Floor:updateWorld()
 end
 
 function Floor:doBlast()
-  self.fixture:setSensor(true)
+  self.fixture:destroy()
   local gtx, gty = map_mgr.getGlobalTilePosForGlobalPos(self.gx, self.gy)
   tile_map:removeTile(gtx, gty)
   self.blast_timeout = MOAISim.getDeviceTime()+6
@@ -58,7 +66,7 @@ end
 
 function Floor:respawn()
   print "floor:respawn"
-  self.fixture:setSensor(false)
+  self:setFixture()
   local gtx, gty = map_mgr.getGlobalTilePosForGlobalPos(self.gx, self.gy)
   tile_map:setTileFromMapData(gtx, gty)
   self.blast_timeout = nil
@@ -88,6 +96,9 @@ function Floor:onCollision(fix_a, fix_b)
       -- The original game only allows for one floor tile in the X position to be destroyed per bomb.
       -- This checks to make sure the bomb is directly above a floor tile before it calls doBlast()
       if bx > fx and bx < fx + 16 then
+        self:doBlast()
+      end
+      if by > fy and by < fy + 16 then
         self:doBlast()
       end
     end

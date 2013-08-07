@@ -14,11 +14,11 @@ return {
     },
     jump = {
       texture = '../resources/images/samus_jump.png',
-      size = {2,4},
+      size = {1,4},
     },
     jumpToFlip = {
       texture = '../resources/images/samus_jump.png',
-      size = {2,4},
+      size = {1,4},
       frames = {1,1},
       anim_step = 0.16/2,
       next_state = 'flip',

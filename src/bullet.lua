@@ -5,7 +5,7 @@ Bullet_mt = {__index = Bullet}
 
 local deck = MOAITileDeck2D.new()
 deck:setTexture('../resources/images/bullet.png')
-deck:setSize(1,4)
+deck:setSize(2,4)
 deck:setRect(-2, -2.5, 2, 5.5)
 
 function Bullet:new (x, y, dir, weapon, longbeam)
@@ -39,11 +39,17 @@ function Bullet:new (x, y, dir, weapon, longbeam)
     this.body:setLinearVelocity(0, 200)
   end
 
+  local index = 1
+  if weapon == 'icebeam' then
+    index = index + 1
+  end
+
   local prop = MOAIProp2D.new()
   prop:setDeck(deck)
   prop:setParent(this.body)
   this.prop = prop
   prop:setLoc(0,0)
+  prop:setIndex(index)
   if dir == 'left' then
     prop:setScl(-1,1)
   end
@@ -82,7 +88,7 @@ function Bullet:updateWorld()
 end
 
 function Bullet:onCollision(fix_a, fix_b)
-  if (fix_b.id == 'floor' and not fix_b:getBody().parent.blast_timeout) or fix_b.id == 'enemy' or (fix_b.id == 'bubble' and not fix_b:getBody().parent.timeout) then
+  if fix_b.id == 'floor' or fix_b.id == 'enemy' or fix_b.id == 'bubble' then
     self:destroy()
   end
 end

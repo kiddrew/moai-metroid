@@ -14,8 +14,8 @@ function Samus:new ()
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 21,
-      y = 8,
+      x = 4,
+      y = 15,
     },
     friction = {
       x = false,
@@ -56,8 +56,8 @@ function Samus:new ()
   this.gear = {
     energy_tanks = energy_tanks or {},
     missiles = missiles or {},
-    ball = ball or true,
-    bomb = bomb or true,
+    ball = ball or false,
+    bomb = bomb or false,
     longbeam = longbeam or false,
     icebeam = icebeam or false,
     wavebeam = wavebeam or false,
@@ -537,10 +537,16 @@ function Samus:fire ()
 
   if self.status.in_ball then
     self:dropBomb()
-  elseif self.status.missile_mode then
-    self:fireMissile()
   else
-    self:fireWeapon()
+    if self.status.action == 'flip' then
+      self.status.action = 'jump'
+    end
+
+    if self.status.missile_mode then
+      self:fireMissile()
+    else
+      self:fireWeapon()
+    end
   end
 end
 
@@ -670,7 +676,6 @@ function Samus:toggleMissiles ()
   if self.status.missile_mode == true then
     self.status.missile_mode = false
   else
-    print("switching to missiles")
     self.status.missile_mode = true
   end
 

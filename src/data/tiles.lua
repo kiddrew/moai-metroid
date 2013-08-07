@@ -1,6 +1,9 @@
 module(..., package.seeall)
 
 return {
+    [0x04] = {
+      poly = -1,
+    },
     [0x41] = {
       poly = {
         0,0,
@@ -165,9 +168,6 @@ return {
       },
     },
     [0x34] = {
-      blast = true,
-    },
-    [0x36] = {
       blast = true,
     },
     [0x3F] = { -- bush

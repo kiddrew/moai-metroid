@@ -21,19 +21,21 @@ function fixture_map:updateRoomsForSamus(samus)
   local srx, sry = map_mgr.getCoordinatesInRoomForGlobalPos(sx, sy)
   local rx, ry = map_mgr.getMapPosForGlobalPos(sx, sy)
 
-  if srx < 32 then
+  local diff = 128
+
+  if srx < 128 then
     -- populate room left
     fixture_map:populateRoom(rx-1, ry)
   end
-  if srx > 224 then
+  if srx > 128 then
     -- populate room right
     fixture_map:populateRoom(rx+1, ry)
   end
-  if sry < 32 then
+  if sry < 120 then
     -- populate room up
     fixture_map:populateRoom(rx, ry+1)
   end
-  if sry > 208 then
+  if sry > 120 then
     -- populate room down
     fixture_map:populateRoom(rx, ry-1)
   end
