@@ -3,36 +3,34 @@ function setupObjGfx(unit, data, name, deck_row)
 
   if not unit.deckcache then
     unit.deckcache = {}
-  elseif unit.deckcache[name] then
---    return unit.deckcache[name]
   end
 
   if not unit.animcache then
     unit.animcache = {}
-  elseif unit.animcache[name] then
---    return unit.animcache[name]
   end
 
   local gfxData = data[name]
 
-  local deck = MOAITileDeck2D.new()
-  deck:setTexture(gfxData.texture)
-  deck:setSize(gfxData.size[1],gfxData.size[2])
-  if gfxData.rect then
-    deck:setRect(gfxData.rect[1],gfxData.rect[2],gfxData.rect[3],gfxData.rect[4])
-  else
-    deck:setRect(-16,-1,16,31)
-  end
+  local deck = unit.deckcache[name]
 
-  unit.deckcache[name] = deck
+  if not deck then
+    deck = MOAITileDeck2D.new()
+    deck:setTexture(gfxData.texture)
+    deck:setSize(gfxData.size[1],gfxData.size[2])
+    if gfxData.rect then
+      deck:setRect(gfxData.rect[1],gfxData.rect[2],gfxData.rect[3],gfxData.rect[4])
+    else
+      deck:setRect(-16,-1,16,31)
+    end
+
+    unit.deckcache[name] = deck
+  end
 
   if gfxData.frames then
     local frames = gfxData.frames
     local curve = MOAIAnimCurve:new()
     curve:reserveKeys(#frames)
     local frame_count = #frames
-    print("frame count "..frame_count)
-    print("deck row "..deck_row)
     for i = 1, frame_count do
       curve:setKey(i, gfxData.anim_step*(i-1), frames[i]+gfxData.size[1]*(deck_row-1), MOAIEaseType.FLAT)
     end
@@ -66,7 +64,6 @@ function setupObjGfx(unit, data, name, deck_row)
       end
     end
 
---    unit.animcache[name] = anim
     unit.anim = anim
   end
 
