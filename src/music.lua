@@ -5,7 +5,7 @@ local music_files = require('data/music_files')
 local volume = 0.25
 local bg = nil
 local playing = false
-local song
+local song = nil
 
 local _M = {}
 
@@ -29,6 +29,8 @@ function _M.stop ()
 end
 
 function _M.play ( new_song )
+  if new_song == song then return end
+
   bg:load ( '../resources/music/' .. music_files[new_song].file )
   bg:setLooping(true)
   bg:setLoopPoints(0, music_files[new_song].loop_point)

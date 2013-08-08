@@ -2,6 +2,7 @@ module(..., package.seeall)
 
 local level_map = require('data/level_map')
 local area_map = require('data/area_map')
+local music_map = require('data/music_map')
 
 function map_mgr.getMapPosForGlobalPos(gx,gy)
   return math.floor((gx+4096)/256)+1, 32-math.floor((gy+3840)/240)
@@ -34,6 +35,10 @@ end
 function map_mgr.getGlobalPosForMapPosAndTilePos(rx,ry,tx,ty)
   local x,y = map_mgr.getGlobalPosForMapPos(rx,ry)
   return x + (tx-1)*16, y + (15-ty)*16
+end
+
+function map_mgr.getMusicFileForMapPos(rx, ry)
+  return music_map[ry][rx]
 end
 
 function map_mgr.getRoomIndex(rx,ry)

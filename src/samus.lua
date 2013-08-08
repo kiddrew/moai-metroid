@@ -9,13 +9,13 @@ function Samus:new ()
   local this = setmetatable({
     id = 'samus',
     health = 99,
-    missiles = 0,
-    max_missiles = 0,
+    missiles = 50,
+    max_missiles = 50,
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 4,
-      y = 15,
+      x = 15,
+      y = 4,
     },
     friction = {
       x = false,
@@ -56,7 +56,7 @@ function Samus:new ()
   this.gear = {
     energy_tanks = energy_tanks or {},
     missiles = missiles or {},
-    ball = ball or false,
+    ball = ball or true,
     bomb = bomb or false,
     longbeam = longbeam or false,
     icebeam = icebeam or false,
@@ -119,7 +119,15 @@ function Samus.init()
   Samus:addFixture('body')
   Samus:addFixture('head')
 
+  Samus:updateWorldMusic()
+
   return Samus
+end
+
+function Samus:updateWorldMusic()
+  local file = map_mgr.getMusicFileForMapPos(self.map_pos.x, self.map_pos.y)
+
+  _G.music.play(file)
 end
 
 function Samus:updateWorld()
@@ -742,6 +750,7 @@ function Samus:enterDoor(door)
       self.status.floor_contacts = 2
       self:land()
     end
+    self:updateWorldMusic()
   end )
 end
 
@@ -826,7 +835,7 @@ function Samus:getItem(item)
 
   local thread = MOAICoroutine.new()
   thread:run( function()
-    _G.music.interrupt('item')
+    _G.music.interrupt(7)
     while _G.music.isPlaying() do
       self.body:setLinearVelocity(0,0)
       coroutine:yield()
