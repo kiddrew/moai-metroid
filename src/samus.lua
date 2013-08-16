@@ -8,14 +8,15 @@ Samus_mt = {__index = Samus}
 function Samus:new ()
   local this = setmetatable({
     id = 'samus',
-    health = 99,
-    missiles = 50,
-    max_missiles = 50,
+    energy = 99,
+    energy_tanks = 0,
+    missiles = 0,
+    max_missiles = 0,
     speed = 85,
     floor_y = nil,
     map_pos = {
-      x = 15,
-      y = 4,
+      x = 4,
+      y = 15,
     },
     friction = {
       x = false,
@@ -54,9 +55,9 @@ function Samus:new ()
   }, Samus_mt)
 
   this.gear = {
-    energy_tanks = energy_tanks or {},
-    missiles = missiles or {},
-    ball = ball or true,
+    obtained = {
+    },
+    ball = ball or false,
     bomb = bomb or false,
     longbeam = longbeam or false,
     icebeam = icebeam or false,
@@ -673,6 +674,8 @@ function Samus:fireMissile ()
   end
 
   local missile = require('missile'):new(bx, by, dir)
+
+  hud:update()
 end
 
 function Samus:toggleMissiles ()
@@ -760,17 +763,20 @@ function Samus:exitDoor()
 end
 
 function Samus:takeHit (obj)
-  self.health = self.health - dmg
-  if self.health <= 0 then
+  self.energy = self.energy - dmg
+  if self.energy <= 0 then
     self:die()
   end
+  hud:update()
 end
 
-function Samus:getHealth()
-  self.health = self.health + 5
-  if self.health > 99 then
-    self.health = 99
+function Samus:getEnergy(amt)
+  self.energy = self.energy + amt
+  local max = 99 + self.energy_tanks * 100
+  if self.energy > max then
+    self.energy = max
   end
+  hud:update()
 end
 
 function Samus:getMissiles()
@@ -778,6 +784,7 @@ function Samus:getMissiles()
   if self.missiles > self.max_missiles then
     self.missiles = self.max_missiles
   end
+  hud:update()
 end
 
 function Samus:enterLava()
@@ -802,11 +809,9 @@ function Samus:getItem(item)
   local gift = item.gift
   print("Samus:getItem "..gift)
   if gift == 'missile' then
-    table.insert(self.gear.missiles, item.rx.."-"..item.ry)
     self.missiles = self.missiles + 5
     self.max_missiles = self.max_missiles + 5
   elseif gift == 'energy tank' then
-    table.insert(self.gear.energy_tanks, item.rx.."-"..item.ry)
   elseif gift == 'ball' then
     self.gear.ball = true
   elseif gift == 'varia' then
@@ -827,8 +832,16 @@ function Samus:getItem(item)
     self.gear.bomb = true
   end
 
+  local obtained = {
+    rx = item.rx,
+    ry = item.ry,
+    tx = item.tx,
+    ty = item.ty,
+  }
+  table.insert(self.gear.obtained, obtained)
+
   self.status.busy = true
-  paused = true
+  _G.paused = true
   if self.view.anim then
     self.view.anim:pause()
   end
@@ -845,7 +858,8 @@ function Samus:getItem(item)
       self.view.anim:start()
     end
     item:destroy()
-    paused = false
+    hud:update()
+    _G.paused = false
   end )
 
 end

@@ -3,40 +3,15 @@ _G._ = require 'underscore'
 _G.simTimeFactor = 1
 MOAISim.setStep(simTimeFactor / MOAISim.DEFAULT_STEPS_PER_SECOND)
 
-_G.scale = 1
+_G.scale = 3
 _G.window = {width = 256, height = 240}
 _G.debug = false
-
-function round(num, idp)
-  local mult = 10^(idp or 0)
-  return math.floor(num * mult + 0.5) / mult
-end
-
-function initializeGrid(rows, cols)
-  local tmp = {}
-  for i=1,rows do
-    tmp[i] = {}
-    for j=1,cols do
-      tmp[i][j] = 0
-    end
-  end
-
-  return tmp
-end
-
-function rprint(table)
-  for k,v in ipairs(table) do
-    if type(v) == 'table' then
-      rprint(v)
-    end
-
-    print(v)
-  end
-end
-
-MOAISim.openWindow ("Metroid", window.width*scale, window.height*scale)
-
+_G.sound_enabled = true
 _G.input = require 'input'
+_G.camera = require 'camera'
+_G.paused = false
+
+require 'helpers'
 
 _G.viewport = MOAIViewport.new()
 viewport:setSize (window.width*scale, window.height*scale)
@@ -49,10 +24,10 @@ _G.sounds = require 'sounds'
 sounds.setVolume (1)
 
 local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-? "
-_G.font = MOAIFont:new ()
-font:loadFromTTF ('../resources/fonts/metroid.ttf', chars, 4, 163)
+--_G.font = MOAIFont:new ()
+--font:loadFromTTF ('../resources/fonts/metroid.ttf', chars, 4, 163)
 
-_G.camera = require('camera')
+MOAISim.openWindow ("Metroid", window.width*scale, window.height*scale)
 
 p_layer = MOAILayer2D.new()
 p_layer:setViewport(viewport)
@@ -65,6 +40,10 @@ m_layer:setViewport(viewport)
 m_layer:setCamera(camera)
 m_layer:showDebugLines(debug)
 MOAISim.pushRenderPass(m_layer)
+
+h_layer = MOAILayer2D.new()
+h_layer:setViewport(viewport)
+MOAISim.pushRenderPass(h_layer)
 
 world = MOAIBox2DWorld.new()
 world:setGravity(0,-10)
@@ -89,14 +68,13 @@ end
 
 _G.Samus = require('samus').Samus.init()
 input.init(Samus)
+_G.hud = require('hud'):new(Samus)
 insertGameObject(Samus)
 camera:setRoomLoc(Samus.map_pos.x, Samus.map_pos.y)
 
 fixture_map:populateRoom(Samus.map_pos.x, Samus.map_pos.y)
 
 Samus:spawn()
-
-music.play('brinstar')
 
 gameLoop = MOAIThread.new()
 gameLoop:run(function()

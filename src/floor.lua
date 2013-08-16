@@ -9,6 +9,7 @@ function Floor:new(gx, gy, tile_data)
     gy = gy,
     blast = (tile_data and tile_data.blast),
     blast_timeout = nil,
+    updated_at = nil,
     status = {
       busy = true
     },
@@ -51,9 +52,14 @@ end
 
 function Floor:updateWorld()
   if self.blast_timeout then
+    local time = MOAISim.getDeviceTime()
+    if _G.paused then
+      self.blast_timeout = self.blast_timeout + time - self.updated_at
+    end
     if MOAISim.getDeviceTime() > self.blast_timeout then
       self:respawn()
     end
+    self.updated_at = time
   end
 end
 

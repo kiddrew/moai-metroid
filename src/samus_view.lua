@@ -1,5 +1,7 @@
-local states = require('data/states/samus')
+--local unit_view = require 'unit_view'
 require 'unit'
+
+local states = require('data/states/samus')
 
 module ( ..., package.seeall)
 
